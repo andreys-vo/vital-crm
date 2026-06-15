@@ -232,6 +232,52 @@
     cursor: pointer; font-family: inherit;
   }
   .btn-cancel:hover { background: var(--gray-50); }
+
+  /* ARCHIVE TASKS */
+  .task-card.task-archived { opacity: .75; }
+  .task-card.task-archived .task-title { text-decoration: line-through; color: var(--gray-500); }
+  .done-check { width: 22px; height: 22px; border-radius: 50%; background: var(--green-lt); color: var(--green); font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+  /* MEETING BADGES */
+  .badge-upcoming { background: var(--blue-lt);  color: var(--blue);  }
+  .badge-past     { background: var(--gray-100); color: var(--gray-500); }
+  .meeting-date { font-size: 12px; font-weight: 600; color: var(--gray-700); margin-top: 4px; }
+  .meeting-date.upcoming { color: var(--blue); }
+
+  /* ADD MEETING BUTTON */
+  .add-meeting-btn {
+    background: var(--blue-lt); color: var(--blue);
+    border: 1px solid transparent; border-radius: 6px;
+    padding: 3px 10px; font-size: 11.5px; font-weight: 600;
+    cursor: pointer; font-family: inherit; transition: all .12s;
+    margin-left: 6px;
+  }
+  .add-meeting-btn:hover { background: var(--blue); color: #fff; }
+
+  /* EDIT MEETING BUTTON */
+  .edit-meeting-btn {
+    background: none; border: 1px solid var(--gray-100);
+    border-radius: 4px; padding: 2px 8px;
+    font-size: 11px; color: var(--gray-500);
+    cursor: pointer; font-family: inherit; transition: all .12s;
+  }
+  .edit-meeting-btn:hover { background: var(--blue-lt); color: var(--blue); border-color: var(--blue); }
+
+  /* MEETING FORM */
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-group label { font-size: 12px; font-weight: 600; color: var(--gray-700); }
+  .form-group input[type="text"],
+  .form-group input[type="datetime-local"],
+  .form-group textarea {
+    border: 1px solid var(--gray-100); border-radius: 6px;
+    padding: 8px 12px; font-family: inherit; font-size: 13px;
+    color: var(--gray-900); background: var(--white); width: 100%;
+  }
+  .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--blue); }
+  .form-group input[type="datetime-local"] { direction: ltr; text-align: right; }
+  .form-row { display: flex; gap: 10px; }
+  .form-row .form-group { flex: 1; min-width: 0; }
+  @media (max-width: 480px) { .form-row { flex-direction: column; } }
 </style>
 </head>
 <body>
@@ -265,13 +311,14 @@
   <div class="panel">
     <div class="panel-head">
       <div class="panel-icon icon-tasks">📋</div>
-      <div class="panel-title">משימות פתוחות</div>
+      <div class="panel-title" id="taskPanelTitle">משימות פתוחות</div>
       <div class="panel-count" id="taskCount">—</div>
     </div>
     <div class="filter-bar" id="taskFilters">
       <button class="filter-btn active-t" data-f="all">הכל</button>
       <button class="filter-btn" data-f="high">עדיפות גבוהה</button>
       <button class="filter-btn" data-f="overdue">באיחור</button>
+      <button class="filter-btn" data-f="archive">ארכיון</button>
     </div>
     <div class="item-list" id="taskList">
       <div class="empty-state"><div class="empty-icon">📋</div><div>בחר לקוח לטעינת משימות</div></div>
@@ -299,18 +346,49 @@
     <div class="panel-head">
       <div class="panel-icon icon-actions">⚡</div>
       <div class="panel-title">פעילויות</div>
+      <button class="add-meeting-btn" id="addMeetingBtn" onclick="openMeetingModal(null)">+ פגישה</button>
       <div class="panel-count" id="actionCount">—</div>
     </div>
     <div class="filter-bar" id="actionFilters">
       <button class="filter-btn active-a" data-f="all">הכל</button>
       <button class="filter-btn" data-f="open">פתוח</button>
       <button class="filter-btn" data-f="done">הושלם</button>
+      <button class="filter-btn" data-f="meetings">פגישות</button>
     </div>
     <div class="item-list" id="actionList">
       <div class="empty-state"><div class="empty-icon">⚡</div><div>בחר לקוח לטעינת פעילויות</div></div>
     </div>
   </div>
 </main>
+
+<!-- MEETING MODAL -->
+<div class="modal-backdrop" id="meetingModal">
+  <div class="modal">
+    <div class="modal-title" id="meetingModalTitle">פגישה חדשה</div>
+    <div class="form-group">
+      <label for="meetingSubject">נושא</label>
+      <input type="text" id="meetingSubject" placeholder="נושא הפגישה...">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="meetingStart">התחלה</label>
+        <input type="datetime-local" id="meetingStart">
+      </div>
+      <div class="form-group">
+        <label for="meetingEnd">סיום</label>
+        <input type="datetime-local" id="meetingEnd">
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="meetingDesc">תיאור</label>
+      <textarea id="meetingDesc" placeholder="תיאור (אופציונלי)..." style="min-height:72px"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-save" id="saveMeetingBtn" onclick="saveMeeting()">שמור</button>
+      <button class="btn-cancel" onclick="closeMeetingModal()">ביטול</button>
+    </div>
+  </div>
+</div>
 
 <!-- REMARK MODAL -->
 <div class="modal-backdrop" id="remarkModal">
@@ -336,6 +414,12 @@ function fmtDate(iso) {
   if (!iso) return "";
   return new Date(iso).toLocaleDateString("he-IL", { day:"2-digit", month:"short", year:"numeric" });
 }
+function fmtDateTime(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleDateString("he-IL", { day:"2-digit", month:"short", year:"numeric" }) +
+    " " + d.toLocaleTimeString("he-IL", { hour:"2-digit", minute:"2-digit" });
+}
 function isOverdue(iso) {
   return iso && new Date(iso) < new Date();
 }
@@ -358,7 +442,7 @@ function priorityHe(p) {
 // ── STATE ─────────────────────────────────────────────────────
 let allTasks = [], allNotes = [], allActivities = [];
 let taskFilter = "all", noteFilter = "all", actionFilter = "all";
-let currentAccountId = null, remarkTaskId = null;
+let currentAccountId = null, remarkTaskId = null, editingMeetingId = null;
 
 // ── FILTERS ───────────────────────────────────────────────────
 document.getElementById("taskFilters").addEventListener("click", function(e) {
@@ -479,17 +563,23 @@ function loadClientData(id, meta) {
 
 // ── RENDER TASKS ──────────────────────────────────────────────
 function renderTasks() {
-  let items = allTasks.filter(t => t.Status !== "Completed");
+  const isArchive = taskFilter === "archive";
+  const openCount = allTasks.filter(t => t.Status !== "Completed").length;
+  document.getElementById("statTasks").textContent = openCount;
+  document.getElementById("taskPanelTitle").textContent = isArchive ? "ארכיון משימות" : "משימות פתוחות";
+
+  let items = allTasks.filter(t => isArchive ? t.Status === "Completed" : t.Status !== "Completed");
   if (taskFilter === "high")    items = items.filter(t => (t.Priority||"").toLowerCase() === "high");
   if (taskFilter === "overdue") items = items.filter(t => isOverdue(t.Due_Date));
+  if (isArchive) items.sort((a,b) => new Date(b.Modified_Time||0) - new Date(a.Modified_Time||0));
 
-  const openCount = allTasks.filter(t => t.Status !== "Completed").length;
-  document.getElementById("taskCount").textContent = openCount;
-  document.getElementById("statTasks").textContent = openCount;
+  document.getElementById("taskCount").textContent = isArchive
+    ? allTasks.filter(t => t.Status === "Completed").length
+    : openCount;
 
   const list = document.getElementById("taskList");
   if (!items.length) {
-    list.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><div>אין משימות התואמות לסינון</div></div>';
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">' + (isArchive?"🗂":"✅") + '</div><div>אין משימות התואמות לסינון</div></div>';
     return;
   }
 
@@ -499,13 +589,17 @@ function renderTasks() {
     const p   = (t.Priority || "normal").toLowerCase();
     const bc  = p === "high" ? "badge-high" : p === "low" ? "badge-low" : "badge-med";
     return `
-      <div class="task-card">
-        <button class="done-btn" data-task-id="${esc(t.id)}" title="סמן כהושלם">✓</button>
+      <div class="task-card${isArchive?" task-archived":""}">
+        ${isArchive
+          ? '<span class="done-check">✓</span>'
+          : `<button class="done-btn" data-task-id="${esc(t.id)}" title="סמן כהושלם">✓</button>`}
         <div class="task-body">
           <div class="task-title">${esc(t.Subject || "משימה ללא שם")}</div>
           <div class="task-meta">
-            <span class="badge ${bc}">${priorityHe(t.Priority)}</span>
-            ${due ? `<span class="due-date ${ov?"overdue":""}">${ov?"⚠ ":""}${fmtDate(due)}</span>` : ""}
+            ${isArchive
+              ? '<span class="badge badge-closed">הושלם</span>'
+              : `<span class="badge ${bc}">${priorityHe(t.Priority)}</span>`}
+            ${due ? `<span class="due-date ${ov&&!isArchive?"overdue":""}">${fmtDate(due)}</span>` : ""}
             ${t.Owner ? `<span style="font-size:11px;color:var(--gray-500)">${esc(t.Owner.name)}</span>` : ""}
           </div>
         </div>
@@ -552,23 +646,58 @@ function renderNotes() {
 
 // ── RENDER ACTIVITIES ─────────────────────────────────────────
 function renderActivities() {
+  const isMeetings = actionFilter === "meetings";
   let items = [...allActivities];
-  if (actionFilter === "open") items = items.filter(a => a.Status !== "Completed");
-  if (actionFilter === "done") items = items.filter(a => a.Status === "Completed");
+  if (actionFilter === "open")     items = items.filter(a => a.Status !== "Completed");
+  if (actionFilter === "done")     items = items.filter(a => a.Status === "Completed");
+  if (isMeetings) {
+    items = items.filter(a => (a.Activity_Type || "").toLowerCase() === "event");
+    const now = new Date();
+    items.sort(function(a, b) {
+      const da = new Date(a.Start_DateTime || a.Due_Date || 0);
+      const db = new Date(b.Start_DateTime || b.Due_Date || 0);
+      const af = da >= now, bf = db >= now;
+      if (af && !bf) return -1;
+      if (!af && bf) return 1;
+      return af ? da - db : db - da;
+    });
+  }
 
   const openCount = allActivities.filter(a => a.Status !== "Completed").length;
-  document.getElementById("actionCount").textContent  = allActivities.length;
-  document.getElementById("statActions").textContent  = openCount;
+  document.getElementById("actionCount").textContent = isMeetings ? items.length : allActivities.length;
+  document.getElementById("statActions").textContent = openCount;
 
   const list = document.getElementById("actionList");
   if (!items.length) {
-    list.innerHTML = '<div class="empty-state"><div class="empty-icon">⚡</div><div>אין פעילויות התואמות לסינון</div></div>';
+    const icon = isMeetings ? "📅" : "⚡";
+    const msg  = isMeetings ? "אין פגישות" : "אין פעילויות התואמות לסינון";
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">${icon}</div><div>${msg}</div></div>`;
     return;
   }
 
   list.innerHTML = items.map(function(a) {
     const done = a.Status === "Completed";
     const desc = (a.Description || "").trim();
+
+    if (isMeetings) {
+      const meetDate = a.Start_DateTime || a.Due_Date || "";
+      const upcoming = meetDate && new Date(meetDate) >= new Date();
+      return `
+        <div class="action-card ${done?"done-action":""}">
+          <div class="action-header">
+            <div class="action-title">${esc(a.Subject || "פגישה")}</div>
+            <span class="badge ${upcoming?"badge-upcoming":"badge-past"}">${upcoming?"עתידי":"עבר"}</span>
+          </div>
+          ${meetDate ? `<div class="meeting-date ${upcoming?"upcoming":""}">📅 ${fmtDateTime(meetDate)}</div>` : ""}
+          ${desc ? `<div class="action-body">${esc(desc.substring(0,140))}${desc.length>140?"…":""}</div>` : ""}
+          <div class="action-footer">
+            ${a.Owner ? `<div class="owner-chip"><div class="avatar">${esc(a.Owner.name.charAt(0))}</div>${esc(a.Owner.name)}</div>` : ""}
+            <button class="edit-meeting-btn" data-meeting-id="${esc(a.id)}">ערוך</button>
+            ${a.id ? `<a class="crm-link" href="https://crm.zoho.com/crm/org/activities/${a.id}" target="_blank">פתח ↗</a>` : ""}
+          </div>
+        </div>`;
+    }
+
     return `
       <div class="action-card ${done?"done-action":""}">
         <div class="action-header">
@@ -663,8 +792,95 @@ function saveRemark() {
 document.getElementById("remarkModal").addEventListener("click", function(e) {
   if (e.target === this) closeRemarkModal();
 });
+
+// ── MEETING MODAL ─────────────────────────────────────────────
+function toLocalDTInput(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const p = n => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+function openMeetingModal(meetingId) {
+  if (!currentAccountId) { showError("יש לבחור לקוח תחילה"); return; }
+  editingMeetingId = meetingId || null;
+  const meeting = meetingId ? allActivities.find(function(a) { return a.id === meetingId; }) : null;
+  document.getElementById("meetingModalTitle").textContent = meeting ? "עריכת פגישה" : "פגישה חדשה";
+  document.getElementById("meetingSubject").value = meeting ? (meeting.Subject || "") : "";
+  document.getElementById("meetingStart").value   = meeting ? toLocalDTInput(meeting.Start_DateTime || meeting.Due_Date) : "";
+  document.getElementById("meetingEnd").value     = meeting ? toLocalDTInput(meeting.End_DateTime) : "";
+  document.getElementById("meetingDesc").value    = meeting ? (meeting.Description || "") : "";
+  const saveBtn = document.getElementById("saveMeetingBtn");
+  saveBtn.disabled = false;
+  saveBtn.textContent = "שמור";
+  document.getElementById("meetingModal").classList.add("open");
+  setTimeout(function() { document.getElementById("meetingSubject").focus(); }, 50);
+}
+
+function closeMeetingModal() {
+  document.getElementById("meetingModal").classList.remove("open");
+  editingMeetingId = null;
+}
+
+function saveMeeting() {
+  const subject = document.getElementById("meetingSubject").value.trim();
+  const start   = document.getElementById("meetingStart").value;
+  const end     = document.getElementById("meetingEnd").value;
+  const desc    = document.getElementById("meetingDesc").value.trim();
+  if (!subject) { document.getElementById("meetingSubject").focus(); return; }
+  if (!start)   { document.getElementById("meetingStart").focus(); return; }
+
+  const saveBtn = document.getElementById("saveMeetingBtn");
+  saveBtn.disabled = true;
+  saveBtn.textContent = "שומר...";
+
+  const apiData = {
+    Event_Title: subject,
+    Start_DateTime: start,
+    End_DateTime: end || start,
+    Description: desc
+  };
+
+  let apiCall;
+  if (editingMeetingId) {
+    apiData.id = editingMeetingId;
+    apiCall = ZOHO.CRM.API.updateRecord({ Entity: "Events", APIData: apiData, Trigger: [] });
+  } else {
+    apiData.What_Id = currentAccountId;
+    apiData.$se_module = "Accounts";
+    apiCall = ZOHO.CRM.API.insertRecord({ Entity: "Events", APIData: apiData });
+  }
+
+  apiCall.then(function() {
+    closeMeetingModal();
+    reloadActivities();
+  }).catch(function(err) {
+    saveBtn.disabled = false;
+    saveBtn.textContent = "שמור";
+    showError("לא ניתן לשמור פגישה — " + JSON.stringify(err));
+  });
+}
+
+function reloadActivities() {
+  ZOHO.CRM.API.getRelatedRecords({
+    Entity: "Accounts", RecordID: currentAccountId,
+    RelatedList: "Activities", page: 1, per_page: 50
+  }).then(function(resp) {
+    allActivities = resp.data || [];
+    renderActivities();
+  });
+}
+
+document.getElementById("actionList").addEventListener("click", function(e) {
+  const editBtn = e.target.closest(".edit-meeting-btn");
+  if (editBtn && editBtn.dataset.meetingId) openMeetingModal(editBtn.dataset.meetingId);
+});
+
+document.getElementById("meetingModal").addEventListener("click", function(e) {
+  if (e.target === this) closeMeetingModal();
+});
 document.addEventListener("keydown", function(e) {
-  if (e.key === "Escape") closeRemarkModal();
+  if (e.key === "Escape") { closeRemarkModal(); closeMeetingModal(); }
 });
 
 </script>
