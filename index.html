@@ -154,6 +154,84 @@
 
   /* ERROR */
   .error-banner { background: var(--red-lt); color: var(--red); padding: 12px 20px; font-size: 13px; border-bottom: 1px solid #f5c6cb; display: none; text-align: right; }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    main { grid-template-columns: 1fr; }
+    header { flex-wrap: wrap; height: auto; padding: 10px 16px; gap: 8px; }
+    .header-sep { display: none; }
+    #clientSelect { min-width: 0; flex: 1; }
+    .header-date { width: 100%; margin-right: 0; font-size: 11px; }
+    .subheader { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .stat-pills { flex-wrap: wrap; }
+  }
+
+  /* DONE BUTTON */
+  .done-btn {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 2px solid var(--gray-300);
+    background: none; cursor: pointer; flex-shrink: 0;
+    transition: all .15s; font-size: 12px; color: transparent;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0;
+  }
+  .done-btn:hover { border-color: var(--green); color: var(--green); background: var(--green-lt); }
+
+  /* TASK SIDE ACTIONS */
+  .task-side { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; align-items: flex-start; }
+  .task-side .crm-link { margin-right: 0; }
+
+  /* REMARK BUTTON */
+  .remark-btn {
+    background: none; border: 1px solid var(--gray-100);
+    border-radius: 4px; padding: 2px 8px;
+    font-size: 11px; color: var(--gray-500);
+    cursor: pointer; font-family: inherit;
+    transition: all .12s; white-space: nowrap;
+  }
+  .remark-btn:hover { background: var(--teal-lt); color: var(--teal); border-color: var(--teal); }
+
+  /* MODAL */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.35);
+    display: none; align-items: center; justify-content: center;
+    z-index: 200;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--white); border-radius: var(--radius);
+    padding: 20px; width: 90%; max-width: 440px;
+    box-shadow: 0 4px 24px rgba(0,0,0,.18);
+    display: flex; flex-direction: column; gap: 12px;
+    direction: rtl;
+  }
+  .modal-title { font-size: 15px; font-weight: 700; color: var(--gray-900); }
+  .modal-subtitle { font-size: 12px; color: var(--gray-500); }
+  .modal textarea {
+    width: 100%; border: 1px solid var(--gray-100);
+    border-radius: 6px; padding: 10px 12px;
+    font-family: inherit; font-size: 13px;
+    resize: vertical; min-height: 100px;
+    color: var(--gray-900); direction: rtl;
+  }
+  .modal textarea:focus { outline: none; border-color: var(--teal); }
+  .modal-actions { display: flex; gap: 8px; }
+  .btn-save {
+    background: var(--teal); color: #fff;
+    border: none; border-radius: 6px;
+    padding: 8px 20px; font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+  }
+  .btn-save:hover { background: #007068; }
+  .btn-save:disabled { opacity: .6; cursor: not-allowed; }
+  .btn-cancel {
+    background: none; color: var(--gray-500);
+    border: 1px solid var(--gray-100); border-radius: 6px;
+    padding: 8px 16px; font-size: 13px;
+    cursor: pointer; font-family: inherit;
+  }
+  .btn-cancel:hover { background: var(--gray-50); }
 </style>
 </head>
 <body>
@@ -234,6 +312,19 @@
   </div>
 </main>
 
+<!-- REMARK MODAL -->
+<div class="modal-backdrop" id="remarkModal">
+  <div class="modal">
+    <div class="modal-title">הוספת הערה</div>
+    <div class="modal-subtitle" id="remarkModalSubject"></div>
+    <textarea id="remarkText" placeholder="כתוב הערה כאן..."></textarea>
+    <div class="modal-actions">
+      <button class="btn-save" id="saveRemarkBtn" onclick="saveRemark()">שמור</button>
+      <button class="btn-cancel" onclick="closeRemarkModal()">ביטול</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://live.zwidgets.com/js-sdk/1.3/ZohoEmbededAppSDK.min.js"></script>
 <script>
 
@@ -267,6 +358,7 @@ function priorityHe(p) {
 // ── STATE ─────────────────────────────────────────────────────
 let allTasks = [], allNotes = [], allActivities = [];
 let taskFilter = "all", noteFilter = "all", actionFilter = "all";
+let currentAccountId = null, remarkTaskId = null;
 
 // ── FILTERS ───────────────────────────────────────────────────
 document.getElementById("taskFilters").addEventListener("click", function(e) {
@@ -344,6 +436,7 @@ function loadAccounts() {
 
 // ── LOAD CLIENT DATA ──────────────────────────────────────────
 function loadClientData(id, meta) {
+  currentAccountId = id;
   document.getElementById("clientName").textContent = meta.name;
   document.getElementById("clientMeta").textContent =
     [meta.owner    ? "אחראי: " + meta.owner    : "",
@@ -407,6 +500,7 @@ function renderTasks() {
     const bc  = p === "high" ? "badge-high" : p === "low" ? "badge-low" : "badge-med";
     return `
       <div class="task-card">
+        <button class="done-btn" data-task-id="${esc(t.id)}" title="סמן כהושלם">✓</button>
         <div class="task-body">
           <div class="task-title">${esc(t.Subject || "משימה ללא שם")}</div>
           <div class="task-meta">
@@ -415,7 +509,10 @@ function renderTasks() {
             ${t.Owner ? `<span style="font-size:11px;color:var(--gray-500)">${esc(t.Owner.name)}</span>` : ""}
           </div>
         </div>
-        ${t.id ? `<a class="crm-link" href="https://crm.zoho.com/crm/org/activities/task/${t.id}" target="_blank">פתח ↗</a>` : ""}
+        <div class="task-side">
+          ${t.id ? `<a class="crm-link" href="https://crm.zoho.com/crm/org/activities/task/${t.id}" target="_blank">פתח ↗</a>` : ""}
+          <button class="remark-btn" data-task-id="${esc(t.id)}" data-task-subject="${esc(t.Subject||'')}">+ הערה</button>
+        </div>
       </div>`;
   }).join("");
 }
@@ -487,6 +584,88 @@ function renderActivities() {
       </div>`;
   }).join("");
 }
+
+// ── TASK ACTIONS ──────────────────────────────────────────────
+document.getElementById("taskList").addEventListener("click", function(e) {
+  const doneBtn = e.target.closest(".done-btn");
+  if (doneBtn && doneBtn.dataset.taskId) { markTaskDone(doneBtn.dataset.taskId); return; }
+  const remarkBtn = e.target.closest(".remark-btn");
+  if (remarkBtn && remarkBtn.dataset.taskId) {
+    openRemarkModal(remarkBtn.dataset.taskId, remarkBtn.dataset.taskSubject || "");
+  }
+});
+
+function markTaskDone(taskId) {
+  ZOHO.CRM.API.updateRecord({
+    Entity: "Tasks",
+    APIData: { id: taskId, Status: "Completed" },
+    Trigger: []
+  }).then(function() {
+    const task = allTasks.find(function(t) { return t.id === taskId; });
+    if (task) task.Status = "Completed";
+    renderTasks();
+  }).catch(function(err) {
+    showError("לא ניתן לעדכן משימה — " + JSON.stringify(err));
+  });
+}
+
+// ── REMARK MODAL ──────────────────────────────────────────────
+function openRemarkModal(taskId, taskSubject) {
+  remarkTaskId = taskId;
+  document.getElementById("remarkModalSubject").textContent = taskSubject || "משימה";
+  document.getElementById("remarkText").value = "";
+  const saveBtn = document.getElementById("saveRemarkBtn");
+  saveBtn.disabled = false;
+  saveBtn.textContent = "שמור";
+  document.getElementById("remarkModal").classList.add("open");
+  setTimeout(function() { document.getElementById("remarkText").focus(); }, 50);
+}
+
+function closeRemarkModal() {
+  document.getElementById("remarkModal").classList.remove("open");
+  remarkTaskId = null;
+}
+
+function saveRemark() {
+  const text = document.getElementById("remarkText").value.trim();
+  if (!text || !remarkTaskId) return;
+  const saveBtn = document.getElementById("saveRemarkBtn");
+  const subject = document.getElementById("remarkModalSubject").textContent;
+  saveBtn.disabled = true;
+  saveBtn.textContent = "שומר...";
+
+  ZOHO.CRM.API.insertRecord({
+    Entity: "Notes",
+    APIData: {
+      Note_Title: "הערה: " + subject,
+      Note_Content: text,
+      Parent_Id: remarkTaskId,
+      $se_module: "Tasks"
+    }
+  }).then(function() {
+    closeRemarkModal();
+    if (currentAccountId) {
+      ZOHO.CRM.API.getRelatedRecords({
+        Entity: "Accounts", RecordID: currentAccountId,
+        RelatedList: "Notes", page: 1, per_page: 50
+      }).then(function(resp) {
+        allNotes = resp.data || [];
+        renderNotes();
+      });
+    }
+  }).catch(function(err) {
+    saveBtn.disabled = false;
+    saveBtn.textContent = "שמור";
+    showError("לא ניתן לשמור הערה — " + JSON.stringify(err));
+  });
+}
+
+document.getElementById("remarkModal").addEventListener("click", function(e) {
+  if (e.target === this) closeRemarkModal();
+});
+document.addEventListener("keydown", function(e) {
+  if (e.key === "Escape") closeRemarkModal();
+});
 
 </script>
 </body>
