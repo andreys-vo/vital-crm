@@ -343,6 +343,18 @@
 
   /* SECONDARY FILTER BAR (meeting time) */
   .filter-bar-sub { background: var(--gray-50); border-top: none; padding-top: 4px; }
+
+  /* HOME VIEW */
+  #homeView { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px 20px 24px; }
+  #homeView.hidden { display: none; }
+  #mainPanels.hidden { display: none; }
+  .ht-client {
+    color: var(--blue); font-size: 11px; background: var(--blue-lt);
+    border-radius: 4px; padding: 1px 7px; border: none;
+    font-family: inherit; cursor: pointer; white-space: nowrap;
+  }
+  .ht-client:hover { background: var(--blue); color: #fff; }
+  @media (max-width: 768px) { #homeView { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -382,7 +394,7 @@
   </div>
 </div>
 
-<main>
+<main id="mainPanels" class="hidden">
   <!-- TASKS -->
   <div class="panel">
     <div class="panel-head">
@@ -441,6 +453,30 @@
     </div>
   </div>
 </main>
+
+<!-- HOME VIEW -->
+<div id="homeView">
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-icon icon-tasks">📋</div>
+      <div class="panel-title">משימות פתוחות</div>
+      <div class="panel-count" id="homeTaskCount">—</div>
+    </div>
+    <div class="item-list" id="homeTaskList">
+      <div class="loading-state"><div class="spinner"></div><div>טוען משימות...</div></div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-icon icon-actions">📅</div>
+      <div class="panel-title">פגישות עתידיות</div>
+      <div class="panel-count" id="homeMeetingCount">—</div>
+    </div>
+    <div class="item-list" id="homeMeetingList">
+      <div class="loading-state"><div class="spinner"></div><div>טוען פגישות...</div></div>
+    </div>
+  </div>
+</div>
 
 <!-- MEETING MODAL -->
 <div class="modal-backdrop" id="meetingModal">
@@ -626,6 +662,7 @@ ZOHO.embeddedApp.on("PageLoad", function() {
   document.getElementById("headerDate").textContent =
     new Date().toLocaleDateString("he-IL", { weekday:"long", day:"2-digit", month:"long", year:"numeric" });
   loadAccounts();
+  loadHomeView();
 });
 ZOHO.embeddedApp.init();
 
@@ -658,7 +695,11 @@ function loadAccounts() {
 
     sel.addEventListener("change", function() {
       const opt = sel.options[sel.selectedIndex];
-      if (!opt.value) return;
+      if (!opt.value) {
+        document.getElementById("homeView").classList.remove("hidden");
+        document.getElementById("mainPanels").classList.add("hidden");
+        return;
+      }
       loadClientData(opt.value, {
         name:     opt.textContent,
         phone:    opt.dataset.phone,
@@ -674,6 +715,9 @@ function loadAccounts() {
 
 // ── LOAD CLIENT DATA ──────────────────────────────────────────
 function loadClientData(id, meta) {
+  document.getElementById("homeView").classList.add("hidden");
+  document.getElementById("mainPanels").classList.remove("hidden");
+
   currentAccountId = id;
   document.getElementById("clientName").textContent = meta.name;
   document.getElementById("clientMeta").textContent =
@@ -1145,6 +1189,87 @@ document.getElementById("meetingModal").addEventListener("click", function(e) {
 document.addEventListener("keydown", function(e) {
   if (e.key === "Escape") { closeRemarkModal(); closeMeetingModal(); }
 });
+
+// ── HOME VIEW ─────────────────────────────────────────────────
+function loadHomeView() {
+  var now = new Date();
+  Promise.all([
+    ZOHO.CRM.API.getAllRecords({ Entity: "Tasks", sort_order: "asc", sort_by: "Due_Date", per_page: 50, page: 1 }),
+    ZOHO.CRM.API.getAllRecords({ Entity: "Events", sort_order: "asc", sort_by: "Start_DateTime", per_page: 50, page: 1 })
+  ]).then(function(results) {
+    var openTasks = (results[0].data || []).filter(function(t) { return t.Status !== "Completed"; });
+    var futureMeetings = (results[1].data || []).filter(function(e) {
+      return e.Start_DateTime && new Date(e.Start_DateTime) >= now;
+    });
+    renderHomeTasks(openTasks);
+    renderHomeMeetings(futureMeetings);
+  }).catch(function(err) {
+    dbg("loadHomeView ERROR", err, true);
+    document.getElementById("homeTaskList").innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div>שגיאה בטעינה</div></div>';
+    document.getElementById("homeMeetingList").innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div>שגיאה בטעינה</div></div>';
+  });
+}
+
+function renderHomeTasks(tasks) {
+  document.getElementById("homeTaskCount").textContent = tasks.length;
+  var el = document.getElementById("homeTaskList");
+  if (!tasks.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><div>אין משימות פתוחות</div></div>';
+    return;
+  }
+  el.innerHTML = tasks.map(function(t) {
+    var priClass = t.Priority === "High" ? "badge-high" : t.Priority === "Normal" ? "badge-med" : "badge-low";
+    var priLabel = t.Priority === "High" ? "גבוהה" : t.Priority === "Normal" ? "רגילה" : (t.Priority || "");
+    var clientName = t.What_Id && t.What_Id.name ? t.What_Id.name : "";
+    var clientId   = t.What_Id && t.What_Id.id   ? t.What_Id.id   : "";
+    return '<div class="task-card">' +
+      '<div class="task-body">' +
+        '<div class="task-title">' + esc(t.Subject || "") + '</div>' +
+        '<div class="task-meta">' +
+          (priLabel ? '<span class="badge ' + priClass + '">' + esc(priLabel) + '</span>' : '') +
+          (t.Due_Date ? '<span class="due-date ' + (isOverdue(t.Due_Date) ? "overdue" : "") + '">' + fmtDate(t.Due_Date) + '</span>' : '') +
+        '</div>' +
+      '</div>' +
+      '<div class="task-side">' +
+        (clientId ? '<button class="ht-client" onclick="goToClient(\'' + esc(clientId) + '\')">' + esc(clientName) + '</button>' : '') +
+      '</div>' +
+    '</div>';
+  }).join("");
+}
+
+function renderHomeMeetings(meetings) {
+  document.getElementById("homeMeetingCount").textContent = meetings.length;
+  var el = document.getElementById("homeMeetingList");
+  if (!meetings.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div><div>אין פגישות עתידיות</div></div>';
+    return;
+  }
+  el.innerHTML = meetings.map(function(m) {
+    var title      = m.Event_Title || m.Subject || "פגישה";
+    var clientName = m.What_Id && m.What_Id.name ? m.What_Id.name : "";
+    var clientId   = m.What_Id && m.What_Id.id   ? m.What_Id.id   : "";
+    return '<div class="action-card">' +
+      '<div class="action-header"><div class="action-title">' + esc(title) + '</div></div>' +
+      (m.Start_DateTime ? '<div class="meeting-date upcoming">' + fmtDateTime(m.Start_DateTime) + '</div>' : '') +
+      '<div class="action-footer">' +
+        (clientId ? '<button class="ht-client" onclick="goToClient(\'' + esc(clientId) + '\')">' + esc(clientName) + '</button>' : '') +
+      '</div>' +
+    '</div>';
+  }).join("");
+}
+
+function goToClient(accountId) {
+  var sel = document.getElementById("clientSelect");
+  sel.value = accountId;
+  var opt = sel.options[sel.selectedIndex];
+  if (!opt || !opt.value) return;
+  loadClientData(opt.value, {
+    name:     opt.textContent,
+    phone:    opt.dataset.phone    || "",
+    industry: opt.dataset.industry || "",
+    owner:    opt.dataset.owner    || ""
+  });
+}
 
 </script>
 </body>
