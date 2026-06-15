@@ -301,6 +301,9 @@
   .flatpickr-time input:focus,
   .flatpickr-time .flatpickr-am-pm:focus { background: var(--blue-lt); }
   .form-group input.flatpickr-input { cursor: pointer; background: var(--white); }
+
+  /* SECONDARY FILTER BAR (meeting time) */
+  .filter-bar-sub { background: var(--gray-50); border-top: none; padding-top: 4px; }
 </style>
 </head>
 <body>
@@ -341,7 +344,7 @@
       <button class="filter-btn active-t" data-f="all">הכל</button>
       <button class="filter-btn" data-f="high">עדיפות גבוהה</button>
       <button class="filter-btn" data-f="overdue">באיחור</button>
-      <button class="filter-btn" data-f="archive">ארכיון</button>
+      <button class="filter-btn" data-f="archive">הושלמו</button>
     </div>
     <div class="item-list" id="taskList">
       <div class="empty-state"><div class="empty-icon">📋</div><div>בחר לקוח לטעינת משימות</div></div>
@@ -377,6 +380,11 @@
       <button class="filter-btn" data-f="open">פתוח</button>
       <button class="filter-btn" data-f="done">הושלם</button>
       <button class="filter-btn" data-f="meetings">פגישות</button>
+    </div>
+    <div class="filter-bar filter-bar-sub" id="meetingTimeFilters" style="display:none">
+      <button class="filter-btn active-a" data-tf="all">הכל</button>
+      <button class="filter-btn" data-tf="upcoming">עתידיות</button>
+      <button class="filter-btn" data-tf="past">קודמות</button>
     </div>
     <div class="item-list" id="actionList">
       <div class="empty-state"><div class="empty-icon">⚡</div><div>בחר לקוח לטעינת פעילויות</div></div>
@@ -465,7 +473,7 @@ function priorityHe(p) {
 
 // ── STATE ─────────────────────────────────────────────────────
 let allTasks = [], allNotes = [], allActivities = [];
-let taskFilter = "all", noteFilter = "all", actionFilter = "all";
+let taskFilter = "all", noteFilter = "all", actionFilter = "all", meetingTimeFilter = "all";
 let currentAccountId = null, remarkTaskId = null, editingMeetingId = null;
 
 // ── FILTERS ───────────────────────────────────────────────────
@@ -488,6 +496,18 @@ document.getElementById("actionFilters").addEventListener("click", function(e) {
   document.querySelectorAll("#actionFilters .filter-btn").forEach(b => b.className = "filter-btn");
   btn.classList.add("active-a");
   actionFilter = btn.dataset.f;
+  if (actionFilter !== "meetings") {
+    meetingTimeFilter = "all";
+    document.querySelectorAll("#meetingTimeFilters .filter-btn").forEach(b => b.className = "filter-btn");
+    document.querySelector("#meetingTimeFilters [data-tf='all']").classList.add("active-a");
+  }
+  renderActivities();
+});
+document.getElementById("meetingTimeFilters").addEventListener("click", function(e) {
+  const btn = e.target.closest(".filter-btn"); if (!btn) return;
+  document.querySelectorAll("#meetingTimeFilters .filter-btn").forEach(b => b.className = "filter-btn");
+  btn.classList.add("active-a");
+  meetingTimeFilter = btn.dataset.tf;
   renderActivities();
 });
 
@@ -629,7 +649,9 @@ function renderTasks() {
         </div>
         <div class="task-side">
           ${t.id ? `<a class="crm-link" href="https://crm.zoho.com/crm/org/activities/task/${t.id}" target="_blank">פתח ↗</a>` : ""}
-          <button class="remark-btn" data-task-id="${esc(t.id)}" data-task-subject="${esc(t.Subject||'')}">+ הערה</button>
+          ${isArchive
+            ? `<button class="remark-btn" data-reopen-id="${esc(t.id)}" style="color:var(--blue)">↩ פתח מחדש</button>`
+            : `<button class="remark-btn" data-task-id="${esc(t.id)}" data-task-subject="${esc(t.Subject||'')}">+ הערה</button>`}
         </div>
       </div>`;
   }).join("");
@@ -671,12 +693,17 @@ function renderNotes() {
 // ── RENDER ACTIVITIES ─────────────────────────────────────────
 function renderActivities() {
   const isMeetings = actionFilter === "meetings";
+  const subBar = document.getElementById("meetingTimeFilters");
+  subBar.style.display = isMeetings ? "" : "none";
+
   let items = [...allActivities];
   if (actionFilter === "open")     items = items.filter(a => a.Status !== "Completed");
   if (actionFilter === "done")     items = items.filter(a => a.Status === "Completed");
   if (isMeetings) {
-    items = items.filter(a => (a.Activity_Type || "").toLowerCase() === "event");
     const now = new Date();
+    items = items.filter(a => (a.Activity_Type || "").toLowerCase() === "event");
+    if (meetingTimeFilter === "upcoming") items = items.filter(a => new Date(a.Start_DateTime || a.Due_Date || 0) >= now);
+    if (meetingTimeFilter === "past")     items = items.filter(a => new Date(a.Start_DateTime || a.Due_Date || 0) < now);
     items.sort(function(a, b) {
       const da = new Date(a.Start_DateTime || a.Due_Date || 0);
       const db = new Date(b.Start_DateTime || b.Due_Date || 0);
@@ -694,7 +721,9 @@ function renderActivities() {
   const list = document.getElementById("actionList");
   if (!items.length) {
     const icon = isMeetings ? "📅" : "⚡";
-    const msg  = isMeetings ? "אין פגישות" : "אין פעילויות התואמות לסינון";
+    const msg  = isMeetings
+      ? (meetingTimeFilter === "upcoming" ? "אין פגישות עתידיות" : meetingTimeFilter === "past" ? "אין פגישות קודמות" : "אין פגישות")
+      : "אין פעילויות התואמות לסינון";
     list.innerHTML = `<div class="empty-state"><div class="empty-icon">${icon}</div><div>${msg}</div></div>`;
     return;
   }
@@ -742,6 +771,8 @@ function renderActivities() {
 document.getElementById("taskList").addEventListener("click", function(e) {
   const doneBtn = e.target.closest(".done-btn");
   if (doneBtn && doneBtn.dataset.taskId) { markTaskDone(doneBtn.dataset.taskId); return; }
+  const reopenBtn = e.target.closest("[data-reopen-id]");
+  if (reopenBtn && reopenBtn.dataset.reopenId) { reopenTask(reopenBtn.dataset.reopenId); return; }
   const remarkBtn = e.target.closest(".remark-btn");
   if (remarkBtn && remarkBtn.dataset.taskId) {
     openRemarkModal(remarkBtn.dataset.taskId, remarkBtn.dataset.taskSubject || "");
@@ -759,6 +790,20 @@ function markTaskDone(taskId) {
     renderTasks();
   }).catch(function(err) {
     showError("לא ניתן לעדכן משימה — " + JSON.stringify(err));
+  });
+}
+
+function reopenTask(taskId) {
+  ZOHO.CRM.API.updateRecord({
+    Entity: "Tasks",
+    APIData: { id: taskId, Status: "Not Started" },
+    Trigger: []
+  }).then(function() {
+    const task = allTasks.find(function(t) { return t.id === taskId; });
+    if (task) task.Status = "Not Started";
+    renderTasks();
+  }).catch(function(err) {
+    showError("לא ניתן לפתוח מחדש את המשימה — " + JSON.stringify(err));
   });
 }
 
