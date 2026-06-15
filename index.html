@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <title>VITAL OP לוח בקרה</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -278,6 +279,28 @@
   .form-row { display: flex; gap: 10px; }
   .form-row .form-group { flex: 1; min-width: 0; }
   @media (max-width: 480px) { .form-row { flex-direction: column; } }
+
+  /* FLATPICKR OVERRIDES */
+  .flatpickr-calendar {
+    font-family: "Segoe UI", Arial, "Arial Hebrew", sans-serif;
+    border-radius: var(--radius); border: 1px solid var(--gray-100);
+    box-shadow: 0 4px 20px rgba(0,0,0,.14);
+  }
+  .flatpickr-months { background: var(--navy); border-radius: var(--radius) var(--radius) 0 0; }
+  .flatpickr-months .flatpickr-month,
+  .flatpickr-current-month .flatpickr-monthDropdown-months,
+  .flatpickr-current-month input.cur-year { background: var(--navy); color: #fff; }
+  .flatpickr-months .flatpickr-prev-month svg,
+  .flatpickr-months .flatpickr-next-month svg { fill: #fff; }
+  .flatpickr-weekday { color: var(--gray-500); font-weight: 600; font-size: 11px; }
+  .flatpickr-day.selected,
+  .flatpickr-day.selected:hover { background: var(--blue); border-color: var(--blue); }
+  .flatpickr-day:hover:not(.selected) { background: var(--blue-lt); }
+  .flatpickr-day.today { border-color: var(--blue); }
+  .flatpickr-time { border-top: 1px solid var(--gray-100); }
+  .flatpickr-time input:focus,
+  .flatpickr-time .flatpickr-am-pm:focus { background: var(--blue-lt); }
+  .form-group input.flatpickr-input { cursor: pointer; background: var(--white); }
 </style>
 </head>
 <body>
@@ -372,11 +395,11 @@
     <div class="form-row">
       <div class="form-group">
         <label for="meetingStart">התחלה</label>
-        <input type="datetime-local" id="meetingStart">
+        <input type="text" id="meetingStart" placeholder="בחר תאריך ושעה..." readonly>
       </div>
       <div class="form-group">
         <label for="meetingEnd">סיום</label>
-        <input type="datetime-local" id="meetingEnd">
+        <input type="text" id="meetingEnd" placeholder="בחר תאריך ושעה..." readonly>
       </div>
     </div>
     <div class="form-group">
@@ -403,6 +426,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://live.zwidgets.com/js-sdk/1.3/ZohoEmbededAppSDK.min.js"></script>
 <script>
 
@@ -794,22 +818,56 @@ document.getElementById("remarkModal").addEventListener("click", function(e) {
 });
 
 // ── MEETING MODAL ─────────────────────────────────────────────
-function toLocalDTInput(iso) {
-  if (!iso) return "";
-  const d = new Date(iso);
+let fpStart = null, fpEnd = null;
+
+function initFlatpickr() {
+  if (fpStart) return;
+  const heLocale = {
+    weekdays: {
+      shorthand: ["א׳","ב׳","ג׳","ד׳","ה׳","ו׳","ש׳"],
+      longhand:  ["ראשון","שני","שלישי","רביעי","חמישי","שישי","שבת"]
+    },
+    months: {
+      shorthand: ["ינו׳","פבר׳","מרץ","אפר׳","מאי","יוני","יולי","אוג׳","ספט׳","אוק׳","נוב׳","דצמ׳"],
+      longhand:  ["ינואר","פברואר","מרץ","אפריל","מאי","יוני","יולי","אוגוסט","ספטמבר","אוקטובר","נובמבר","דצמבר"]
+    },
+    firstDayOfWeek: 0
+  };
+  const cfg = { enableTime: true, time_24hr: true, dateFormat: "Y-m-d H:i",
+                locale: heLocale, disableMobile: true, appendTo: document.body };
+  fpStart = flatpickr("#meetingStart", Object.assign({}, cfg, {
+    onChange: function(dates) {
+      if (dates[0] && !fpEnd.selectedDates[0]) {
+        const end = new Date(dates[0]);
+        end.setHours(end.getHours() + 1);
+        fpEnd.setDate(end, false);
+      }
+    }
+  }));
+  fpEnd = flatpickr("#meetingEnd", cfg);
+}
+
+function toZohoDT(dtStr) {
+  if (!dtStr) return "";
+  const d = new Date(dtStr.replace(" ", "T"));
+  if (isNaN(d)) return "";
   const p = n => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+  const off = -d.getTimezoneOffset();
+  const sign = off >= 0 ? "+" : "-";
+  const abs = Math.abs(off);
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:00${sign}${p(Math.floor(abs/60))}:${p(abs%60)}`;
 }
 
 function openMeetingModal(meetingId) {
   if (!currentAccountId) { showError("יש לבחור לקוח תחילה"); return; }
+  initFlatpickr();
   editingMeetingId = meetingId || null;
   const meeting = meetingId ? allActivities.find(function(a) { return a.id === meetingId; }) : null;
   document.getElementById("meetingModalTitle").textContent = meeting ? "עריכת פגישה" : "פגישה חדשה";
   document.getElementById("meetingSubject").value = meeting ? (meeting.Subject || "") : "";
-  document.getElementById("meetingStart").value   = meeting ? toLocalDTInput(meeting.Start_DateTime || meeting.Due_Date) : "";
-  document.getElementById("meetingEnd").value     = meeting ? toLocalDTInput(meeting.End_DateTime) : "";
-  document.getElementById("meetingDesc").value    = meeting ? (meeting.Description || "") : "";
+  fpStart.setDate(meeting ? (meeting.Start_DateTime || meeting.Due_Date || "") : "", false);
+  fpEnd.setDate(meeting ? (meeting.End_DateTime || "") : "", false);
+  document.getElementById("meetingDesc").value = meeting ? (meeting.Description || "") : "";
   const saveBtn = document.getElementById("saveMeetingBtn");
   saveBtn.disabled = false;
   saveBtn.textContent = "שמור";
@@ -820,6 +878,8 @@ function openMeetingModal(meetingId) {
 function closeMeetingModal() {
   document.getElementById("meetingModal").classList.remove("open");
   editingMeetingId = null;
+  if (fpStart) fpStart.clear();
+  if (fpEnd)   fpEnd.clear();
 }
 
 function saveMeeting() {
@@ -836,8 +896,8 @@ function saveMeeting() {
 
   const apiData = {
     Event_Title: subject,
-    Start_DateTime: start,
-    End_DateTime: end || start,
+    Start_DateTime: toZohoDT(start),
+    End_DateTime: toZohoDT(end || start),
     Description: desc
   };
 
