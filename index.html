@@ -1081,18 +1081,45 @@ function saveMeeting() {
 }
 
 function loadMeetings(accountId) {
-  dbg("loadMeetings → searchRecords Events What_Id:equals:" + accountId, null, false);
-  ZOHO.CRM.API.searchRecords({
-    Entity: "Events",
-    Type: "criteria",
-    Query: "(What_Id:equals:" + accountId + ")"
+  dbg("loadMeetings → getRelatedRecords Accounts/" + accountId + "/Events", null, false);
+  ZOHO.CRM.API.getRelatedRecords({
+    Entity: "Accounts",
+    RecordID: accountId,
+    RelatedList: "Events",
+    page: 1,
+    per_page: 50
   }).then(function(resp) {
-    dbg("loadMeetings ← searchRecords response", resp, false);
-    allMeetings = resp.data || [];
-    if (actionFilter === "meetings") renderActivities();
+    dbg("loadMeetings ← getRelatedRecords Events", resp, false);
+    if (resp && resp.data && resp.data.length > 0) {
+      allMeetings = resp.data;
+      if (actionFilter === "meetings") renderActivities();
+      return;
+    }
+    // fallback: searchRecords criteria
+    dbg("loadMeetings → fallback searchRecords Events What_Id:equals:" + accountId, null, false);
+    return ZOHO.CRM.API.searchRecords({
+      Entity: "Events",
+      Type: "criteria",
+      Query: "(What_Id:equals:" + accountId + ")"
+    }).then(function(resp2) {
+      dbg("loadMeetings ← searchRecords Events", resp2, false);
+      allMeetings = resp2.data || [];
+      if (actionFilter === "meetings") renderActivities();
+    });
   }).catch(function(err) {
-    dbg("loadMeetings ← searchRecords ERROR", err, true);
-    allMeetings = [];
+    dbg("loadMeetings ← getRelatedRecords ERROR, trying searchRecords fallback", err, true);
+    ZOHO.CRM.API.searchRecords({
+      Entity: "Events",
+      Type: "criteria",
+      Query: "(What_Id:equals:" + accountId + ")"
+    }).then(function(resp2) {
+      dbg("loadMeetings ← fallback searchRecords Events", resp2, false);
+      allMeetings = resp2.data || [];
+      if (actionFilter === "meetings") renderActivities();
+    }).catch(function(err2) {
+      dbg("loadMeetings ← all attempts failed", err2, true);
+      allMeetings = [];
+    });
   });
 }
 
