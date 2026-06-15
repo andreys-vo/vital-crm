@@ -762,7 +762,7 @@ function renderTasks() {
           </div>
         </div>
         <div class="task-side">
-          ${t.id ? `<a class="crm-link" href="https://crm.zoho.com/crm/org/activities/task/${t.id}" target="_blank">פתח ↗</a>` : ""}
+          ${t.id ? `<a class="crm-link" href="https://crm.zoho.com/crm/org919146768/tab/Tasks/${t.id}" target="_blank">פתח ↗</a>` : ""}
           ${isArchive
             ? `<button class="remark-btn" data-reopen-id="${esc(t.id)}" style="color:var(--blue)">↩ פתח מחדש</button>`
             : `<button class="remark-btn" data-task-id="${esc(t.id)}" data-task-subject="${esc(t.Subject||'')}">+ הערה</button>`}
@@ -860,7 +860,7 @@ function renderActivities() {
           <div class="action-footer">
             ${a.Owner ? `<div class="owner-chip"><div class="avatar">${esc(a.Owner.name.charAt(0))}</div>${esc(a.Owner.name)}</div>` : ""}
             <button class="edit-meeting-btn" data-meeting-id="${esc(a.id)}">ערוך</button>
-            ${a.id ? `<a class="crm-link" href="https://crm.zoho.com/crm/org/activities/${a.id}" target="_blank">פתח ↗</a>` : ""}
+            ${a.id ? `<a class="crm-link" href="https://crm.zoho.com/crm/org919146768/tab/Events/${a.id}" target="_blank">פתח ↗</a>` : ""}
           </div>
         </div>`;
     }
@@ -875,7 +875,7 @@ function renderActivities() {
         <div class="action-footer">
           ${a.Owner ? `<div class="owner-chip"><div class="avatar">${esc(a.Owner.name.charAt(0))}</div>${esc(a.Owner.name)}</div>` : ""}
           ${a.Due_Date ? `<span class="due-date ${isOverdue(a.Due_Date)&&!done?"overdue":""}">${fmtDate(a.Due_Date)}</span>` : ""}
-          ${a.id ? `<a class="crm-link" href="https://crm.zoho.com/crm/org/activities/${a.id}" target="_blank">פתח ↗</a>` : ""}
+          ${a.id ? `<a class="crm-link" href="https://crm.zoho.com/crm/org919146768/tab/Tasks/${a.id}" target="_blank">פתח ↗</a>` : ""}
         </div>
       </div>`;
   }).join("");
