@@ -472,7 +472,7 @@ function priorityHe(p) {
 }
 
 // ── STATE ─────────────────────────────────────────────────────
-let allTasks = [], allNotes = [], allActivities = [];
+let allTasks = [], allNotes = [], allActivities = [], allMeetings = [];
 let taskFilter = "all", noteFilter = "all", actionFilter = "all", meetingTimeFilter = "all";
 let currentAccountId = null, remarkTaskId = null, editingMeetingId = null;
 
@@ -589,6 +589,7 @@ function loadClientData(id, meta) {
     allActivities = results[2].data || [];
 
     taskFilter = noteFilter = actionFilter = "all";
+    meetingTimeFilter = "all";
     document.querySelectorAll("#taskFilters   .filter-btn").forEach(b => b.className = "filter-btn");
     document.querySelectorAll("#noteFilters   .filter-btn").forEach(b => b.className = "filter-btn");
     document.querySelectorAll("#actionFilters .filter-btn").forEach(b => b.className = "filter-btn");
@@ -603,6 +604,8 @@ function loadClientData(id, meta) {
   }).catch(function(err) {
     showError("שגיאה בטעינת נתוני לקוח — " + JSON.stringify(err));
   });
+
+  loadMeetings(id);
 }
 
 // ── RENDER TASKS ──────────────────────────────────────────────
@@ -701,7 +704,7 @@ function renderActivities() {
   if (actionFilter === "done")     items = items.filter(a => a.Status === "Completed");
   if (isMeetings) {
     const now = new Date();
-    items = items.filter(a => (a.Activity_Type || "").toLowerCase() === "event");
+    items = [...allMeetings];
     if (meetingTimeFilter === "upcoming") items = items.filter(a => new Date(a.Start_DateTime || a.Due_Date || 0) >= now);
     if (meetingTimeFilter === "past")     items = items.filter(a => new Date(a.Start_DateTime || a.Due_Date || 0) < now);
     items.sort(function(a, b) {
@@ -738,7 +741,7 @@ function renderActivities() {
       return `
         <div class="action-card ${done?"done-action":""}">
           <div class="action-header">
-            <div class="action-title">${esc(a.Subject || "פגישה")}</div>
+            <div class="action-title">${esc(a.Event_Title || a.Subject || "פגישה")}</div>
             <span class="badge ${upcoming?"badge-upcoming":"badge-past"}">${upcoming?"עתידי":"עבר"}</span>
           </div>
           ${meetDate ? `<div class="meeting-date ${upcoming?"upcoming":""}">📅 ${fmtDateTime(meetDate)}</div>` : ""}
@@ -907,9 +910,9 @@ function openMeetingModal(meetingId) {
   if (!currentAccountId) { showError("יש לבחור לקוח תחילה"); return; }
   initFlatpickr();
   editingMeetingId = meetingId || null;
-  const meeting = meetingId ? allActivities.find(function(a) { return a.id === meetingId; }) : null;
+  const meeting = meetingId ? allMeetings.find(function(a) { return a.id === meetingId; }) : null;
   document.getElementById("meetingModalTitle").textContent = meeting ? "עריכת פגישה" : "פגישה חדשה";
-  document.getElementById("meetingSubject").value = meeting ? (meeting.Subject || "") : "";
+  document.getElementById("meetingSubject").value = meeting ? (meeting.Event_Title || meeting.Subject || "") : "";
   fpStart.setDate(meeting ? (meeting.Start_DateTime || meeting.Due_Date || "") : "", false);
   fpEnd.setDate(meeting ? (meeting.End_DateTime || "") : "", false);
   document.getElementById("meetingDesc").value = meeting ? (meeting.Description || "") : "";
@@ -966,6 +969,19 @@ function saveMeeting() {
   });
 }
 
+function loadMeetings(accountId) {
+  ZOHO.CRM.API.searchRecords({
+    Entity: "Events",
+    Type: "criteria",
+    Query: "(What_Id:equals:" + accountId + ")"
+  }).then(function(resp) {
+    allMeetings = resp.data || [];
+    if (actionFilter === "meetings") renderActivities();
+  }).catch(function() {
+    allMeetings = [];
+  });
+}
+
 function reloadActivities() {
   ZOHO.CRM.API.getRelatedRecords({
     Entity: "Accounts", RecordID: currentAccountId,
@@ -974,6 +990,7 @@ function reloadActivities() {
     allActivities = resp.data || [];
     renderActivities();
   });
+  loadMeetings(currentAccountId);
 }
 
 document.getElementById("actionList").addEventListener("click", function(e) {
