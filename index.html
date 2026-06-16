@@ -390,7 +390,7 @@
   <div class="stat-pills">
     <div class="stat-pill pill-tasks">📋 <span id="statTasks">—</span> משימות</div>
     <div class="stat-pill pill-notes">📝 <span id="statNotes">—</span> הערות</div>
-    <div class="stat-pill pill-actions">⚡ <span id="statActions">—</span> פעילויות</div>
+    <div class="stat-pill pill-actions">📅 <span id="statActions">—</span> פגישות</div>
   </div>
 </div>
 
@@ -429,27 +429,21 @@
     </div>
   </div>
 
-  <!-- ACTIVITIES -->
+  <!-- MEETINGS -->
   <div class="panel">
     <div class="panel-head">
-      <div class="panel-icon icon-actions">⚡</div>
-      <div class="panel-title">פעילויות</div>
+      <div class="panel-icon icon-actions">📅</div>
+      <div class="panel-title">פגישות</div>
       <button class="add-meeting-btn" id="addMeetingBtn" onclick="openMeetingModal(null)">+ פגישה</button>
       <div class="panel-count" id="actionCount">—</div>
     </div>
-    <div class="filter-bar" id="actionFilters">
-      <button class="filter-btn active-a" data-f="all">הכל</button>
-      <button class="filter-btn" data-f="open">פתוח</button>
-      <button class="filter-btn" data-f="done">הושלם</button>
-      <button class="filter-btn" data-f="meetings">פגישות</button>
-    </div>
-    <div class="filter-bar filter-bar-sub" id="meetingTimeFilters" style="display:none">
+    <div class="filter-bar" id="meetingTimeFilters">
       <button class="filter-btn active-a" data-tf="all">הכל</button>
       <button class="filter-btn" data-tf="upcoming">עתידיות</button>
       <button class="filter-btn" data-tf="past">קודמות</button>
     </div>
     <div class="item-list" id="actionList">
-      <div class="empty-state"><div class="empty-icon">⚡</div><div>בחר לקוח לטעינת פעילויות</div></div>
+      <div class="empty-state"><div class="empty-icon">📅</div><div>בחר לקוח לטעינת פגישות</div></div>
     </div>
   </div>
 </main>
@@ -618,8 +612,8 @@ function priorityHe(p) {
 }
 
 // ── STATE ─────────────────────────────────────────────────────
-let allTasks = [], allNotes = [], allActivities = [], allMeetings = [];
-let taskFilter = "all", noteFilter = "all", actionFilter = "all", meetingTimeFilter = "all";
+let allTasks = [], allNotes = [], allMeetings = [];
+let taskFilter = "all", noteFilter = "all", meetingTimeFilter = "all";
 let currentAccountId = null, remarkTaskId = null, editingMeetingId = null;
 
 // ── FILTERS ───────────────────────────────────────────────────
@@ -636,18 +630,6 @@ document.getElementById("noteFilters").addEventListener("click", function(e) {
   btn.classList.add("active-n");
   noteFilter = btn.dataset.f;
   renderNotes();
-});
-document.getElementById("actionFilters").addEventListener("click", function(e) {
-  const btn = e.target.closest(".filter-btn"); if (!btn) return;
-  document.querySelectorAll("#actionFilters .filter-btn").forEach(b => b.className = "filter-btn");
-  btn.classList.add("active-a");
-  actionFilter = btn.dataset.f;
-  if (actionFilter !== "meetings") {
-    meetingTimeFilter = "all";
-    document.querySelectorAll("#meetingTimeFilters .filter-btn").forEach(b => b.className = "filter-btn");
-    document.querySelector("#meetingTimeFilters [data-tf='all']").classList.add("active-a");
-  }
-  renderActivities();
 });
 document.getElementById("meetingTimeFilters").addEventListener("click", function(e) {
   const btn = e.target.closest(".filter-btn"); if (!btn) return;
@@ -734,23 +716,21 @@ function loadClientData(id, meta) {
   showSpinner("actionList");
 
   Promise.all([
-    ZOHO.CRM.API.getRelatedRecords({ Entity:"Accounts", RecordID:id, RelatedList:"Tasks",      page:1, per_page:50 }),
-    ZOHO.CRM.API.getRelatedRecords({ Entity:"Accounts", RecordID:id, RelatedList:"Notes",      page:1, per_page:50 }),
-    ZOHO.CRM.API.getRelatedRecords({ Entity:"Accounts", RecordID:id, RelatedList:"Activities", page:1, per_page:50 })
+    ZOHO.CRM.API.getRelatedRecords({ Entity:"Accounts", RecordID:id, RelatedList:"Tasks", page:1, per_page:50 }),
+    ZOHO.CRM.API.getRelatedRecords({ Entity:"Accounts", RecordID:id, RelatedList:"Notes", page:1, per_page:50 })
   ]).then(function(results) {
-    allTasks      = results[0].data || [];
-    allNotes      = results[1].data || [];
-    allActivities = results[2].data || [];
-    dbg("loadClientData ✓", { tasks: allTasks.length, notes: allNotes.length, activities: allActivities.length });
+    allTasks = results[0].data || [];
+    allNotes = results[1].data || [];
+    dbg("loadClientData ✓", { tasks: allTasks.length, notes: allNotes.length });
 
-    taskFilter = noteFilter = actionFilter = "all";
+    taskFilter = noteFilter = "all";
     meetingTimeFilter = "all";
-    document.querySelectorAll("#taskFilters   .filter-btn").forEach(b => b.className = "filter-btn");
-    document.querySelectorAll("#noteFilters   .filter-btn").forEach(b => b.className = "filter-btn");
-    document.querySelectorAll("#actionFilters .filter-btn").forEach(b => b.className = "filter-btn");
-    document.querySelector("#taskFilters   [data-f='all']").classList.add("active-t");
-    document.querySelector("#noteFilters   [data-f='all']").classList.add("active-n");
-    document.querySelector("#actionFilters [data-f='all']").classList.add("active-a");
+    document.querySelectorAll("#taskFilters .filter-btn").forEach(b => b.className = "filter-btn");
+    document.querySelectorAll("#noteFilters .filter-btn").forEach(b => b.className = "filter-btn");
+    document.querySelectorAll("#meetingTimeFilters .filter-btn").forEach(b => b.className = "filter-btn");
+    document.querySelector("#taskFilters [data-f='all']").classList.add("active-t");
+    document.querySelector("#noteFilters [data-f='all']").classList.add("active-n");
+    document.querySelector("#meetingTimeFilters [data-tf='all']").classList.add("active-a");
 
     renderTasks();
     renderNotes();
@@ -850,76 +830,48 @@ function renderNotes() {
 
 // ── RENDER ACTIVITIES ─────────────────────────────────────────
 function renderActivities() {
-  const isMeetings = actionFilter === "meetings";
-  const subBar = document.getElementById("meetingTimeFilters");
-  subBar.style.display = isMeetings ? "" : "none";
+  const now = new Date();
+  let items = [...allMeetings];
+  if (meetingTimeFilter === "upcoming") items = items.filter(a => new Date(a.Start_DateTime || 0) >= now);
+  if (meetingTimeFilter === "past")     items = items.filter(a => new Date(a.Start_DateTime || 0) < now);
+  items.sort(function(a, b) {
+    const da = new Date(a.Start_DateTime || 0);
+    const db = new Date(b.Start_DateTime || 0);
+    const af = da >= now, bf = db >= now;
+    if (af && !bf) return -1;
+    if (!af && bf) return 1;
+    return af ? da - db : db - da;
+  });
 
-  let items = [...allActivities];
-  if (actionFilter === "open")     items = items.filter(a => a.Status !== "Completed");
-  if (actionFilter === "done")     items = items.filter(a => a.Status === "Completed");
-  if (isMeetings) {
-    const now = new Date();
-    items = [...allMeetings];
-    if (meetingTimeFilter === "upcoming") items = items.filter(a => new Date(a.Start_DateTime || a.Due_Date || 0) >= now);
-    if (meetingTimeFilter === "past")     items = items.filter(a => new Date(a.Start_DateTime || a.Due_Date || 0) < now);
-    items.sort(function(a, b) {
-      const da = new Date(a.Start_DateTime || a.Due_Date || 0);
-      const db = new Date(b.Start_DateTime || b.Due_Date || 0);
-      const af = da >= now, bf = db >= now;
-      if (af && !bf) return -1;
-      if (!af && bf) return 1;
-      return af ? da - db : db - da;
-    });
-  }
-
-  const openCount = allActivities.filter(a => a.Status !== "Completed").length;
-  document.getElementById("actionCount").textContent = isMeetings ? items.length : allActivities.length;
-  document.getElementById("statActions").textContent = openCount;
+  document.getElementById("actionCount").textContent = items.length;
+  document.getElementById("statActions").textContent = allMeetings.length;
 
   const list = document.getElementById("actionList");
   if (!items.length) {
-    const icon = isMeetings ? "📅" : "⚡";
-    const msg  = isMeetings
-      ? (meetingTimeFilter === "upcoming" ? "אין פגישות עתידיות" : meetingTimeFilter === "past" ? "אין פגישות קודמות" : "אין פגישות")
-      : "אין פעילויות התואמות לסינון";
-    list.innerHTML = `<div class="empty-state"><div class="empty-icon">${icon}</div><div>${msg}</div></div>`;
+    const msg = meetingTimeFilter === "upcoming" ? "אין פגישות עתידיות"
+              : meetingTimeFilter === "past"     ? "אין פגישות קודמות"
+              : "אין פגישות";
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div><div>${msg}</div></div>`;
     return;
   }
 
   list.innerHTML = items.map(function(a) {
-    const done = a.Status === "Completed";
-    const desc = (a.Description || "").trim();
-
-    if (isMeetings) {
-      const meetDate = a.Start_DateTime || a.Due_Date || "";
-      const upcoming = meetDate && new Date(meetDate) >= new Date();
-      return `
-        <div class="action-card ${done?"done-action":""}">
-          <div class="action-header">
-            <div class="action-title">${esc(a.Event_Title || a.Subject || "פגישה")}</div>
-            <span class="badge ${upcoming?"badge-upcoming":"badge-past"}">${upcoming?"עתידי":"עבר"}</span>
-          </div>
-          ${meetDate ? `<div class="meeting-date ${upcoming?"upcoming":""}">📅 ${fmtDateTime(meetDate)}</div>` : ""}
-          ${desc ? `<div class="action-body">${esc(desc.substring(0,140))}${desc.length>140?"…":""}</div>` : ""}
-          <div class="action-footer">
-            ${a.Owner ? `<div class="owner-chip"><div class="avatar">${esc(a.Owner.name.charAt(0))}</div>${esc(a.Owner.name)}</div>` : ""}
-            <button class="edit-meeting-btn" data-meeting-id="${esc(a.id)}">ערוך</button>
-            ${a.id ? `<a class="crm-link" href="https://crm.zoho.com/crm/org919146768/tab/Events/${a.id}" target="_blank">פתח ↗</a>` : ""}
-          </div>
-        </div>`;
-    }
-
+    const done     = a.Status === "Completed";
+    const desc     = (a.Description || "").trim();
+    const meetDate = a.Start_DateTime || "";
+    const upcoming = meetDate && new Date(meetDate) >= now;
     return `
       <div class="action-card ${done?"done-action":""}">
         <div class="action-header">
-          <div class="action-title">${esc(a.Subject || "פעילות")}</div>
-          <span class="badge ${done?"badge-closed":"badge-open"}">${done?"הושלם":"פתוח"}</span>
+          <div class="action-title">${esc(a.Event_Title || a.Subject || "פגישה")}</div>
+          <span class="badge ${upcoming?"badge-upcoming":"badge-past"}">${upcoming?"עתידי":"עבר"}</span>
         </div>
+        ${meetDate ? `<div class="meeting-date ${upcoming?"upcoming":""}">📅 ${fmtDateTime(meetDate)}</div>` : ""}
         ${desc ? `<div class="action-body">${esc(desc.substring(0,140))}${desc.length>140?"…":""}</div>` : ""}
         <div class="action-footer">
           ${a.Owner ? `<div class="owner-chip"><div class="avatar">${esc(a.Owner.name.charAt(0))}</div>${esc(a.Owner.name)}</div>` : ""}
-          ${a.Due_Date ? `<span class="due-date ${isOverdue(a.Due_Date)&&!done?"overdue":""}">${fmtDate(a.Due_Date)}</span>` : ""}
-          ${a.id ? `<a class="crm-link" href="https://crm.zoho.com/crm/org919146768/tab/Tasks/${a.id}" target="_blank">פתח ↗</a>` : ""}
+          <button class="edit-meeting-btn" data-meeting-id="${esc(a.id)}">ערוך</button>
+          ${a.id ? `<a class="crm-link" href="https://crm.zoho.com/crm/org919146768/tab/Events/${a.id}" target="_blank">פתח ↗</a>` : ""}
         </div>
       </div>`;
   }).join("");
@@ -1136,7 +1088,7 @@ function loadMeetings(accountId) {
     dbg("loadMeetings ← getRelatedRecords Events", resp, false);
     if (resp && resp.data && resp.data.length > 0) {
       allMeetings = resp.data;
-      if (actionFilter === "meetings") renderActivities();
+      renderActivities();
       return;
     }
     // fallback: searchRecords criteria
@@ -1148,7 +1100,7 @@ function loadMeetings(accountId) {
     }).then(function(resp2) {
       dbg("loadMeetings ← searchRecords Events", resp2, false);
       allMeetings = resp2.data || [];
-      if (actionFilter === "meetings") renderActivities();
+      renderActivities();
     });
   }).catch(function(err) {
     dbg("loadMeetings ← getRelatedRecords ERROR, trying searchRecords fallback", err, true);
@@ -1159,7 +1111,7 @@ function loadMeetings(accountId) {
     }).then(function(resp2) {
       dbg("loadMeetings ← fallback searchRecords Events", resp2, false);
       allMeetings = resp2.data || [];
-      if (actionFilter === "meetings") renderActivities();
+      renderActivities();
     }).catch(function(err2) {
       dbg("loadMeetings ← all attempts failed", err2, true);
       allMeetings = [];
@@ -1168,13 +1120,6 @@ function loadMeetings(accountId) {
 }
 
 function reloadActivities() {
-  ZOHO.CRM.API.getRelatedRecords({
-    Entity: "Accounts", RecordID: currentAccountId,
-    RelatedList: "Activities", page: 1, per_page: 50
-  }).then(function(resp) {
-    allActivities = resp.data || [];
-    renderActivities();
-  });
   loadMeetings(currentAccountId);
 }
 
