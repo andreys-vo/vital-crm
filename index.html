@@ -439,8 +439,7 @@
       <div class="panel-count" id="actionCount">—</div>
     </div>
     <div class="filter-bar" id="meetingTimeFilters">
-      <button class="filter-btn active-a" data-tf="all">הכל</button>
-      <button class="filter-btn" data-tf="upcoming">עתידיות</button>
+      <button class="filter-btn active-a" data-tf="upcoming">עתידיות</button>
       <button class="filter-btn" data-tf="past">קודמות</button>
     </div>
     <div class="item-list" id="actionList">
@@ -614,7 +613,7 @@ function priorityHe(p) {
 
 // ── STATE ─────────────────────────────────────────────────────
 let allTasks = [], allNotes = [], allMeetings = [];
-let taskFilter = "all", noteFilter = "all", meetingTimeFilter = "all";
+let taskFilter = "all", noteFilter = "all", meetingTimeFilter = "upcoming";
 let currentAccountId = null, remarkTaskId = null, editingMeetingId = null;
 
 // ── FILTERS ───────────────────────────────────────────────────
@@ -726,13 +725,13 @@ function loadClientData(id, meta) {
     dbg("loadClientData ✓", { tasks: allTasks.length, notes: allNotes.length });
 
     taskFilter = noteFilter = "all";
-    meetingTimeFilter = "all";
+    meetingTimeFilter = "upcoming";
     document.querySelectorAll("#taskFilters .filter-btn").forEach(b => b.className = "filter-btn");
     document.querySelectorAll("#noteFilters .filter-btn").forEach(b => b.className = "filter-btn");
     document.querySelectorAll("#meetingTimeFilters .filter-btn").forEach(b => b.className = "filter-btn");
     document.querySelector("#taskFilters [data-f='all']").classList.add("active-t");
     document.querySelector("#noteFilters [data-f='all']").classList.add("active-n");
-    document.querySelector("#meetingTimeFilters [data-tf='all']").classList.add("active-a");
+    document.querySelector("#meetingTimeFilters [data-tf='upcoming']").classList.add("active-a");
 
     renderTasks();
     renderNotes();
