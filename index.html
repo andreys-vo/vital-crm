@@ -59,6 +59,14 @@
   #clientSelect:focus { outline: none; border-color: #5BB3FF; }
   #clientSelect option { background: #1A2E4A; color: #fff; }
   .header-date { color: rgba(255,255,255,.4); font-size: 12px; margin-right: auto; white-space: nowrap; }
+  .add-client-btn {
+    background: rgba(255,255,255,.1); color: #fff;
+    border: 1px solid rgba(255,255,255,.2); border-radius: 6px;
+    padding: 5px 12px; font-size: 12.5px; font-weight: 600;
+    cursor: pointer; font-family: inherit; transition: all .12s;
+    white-space: nowrap;
+  }
+  .add-client-btn:hover { background: var(--blue); border-color: var(--blue); }
 
   /* SUBHEADER */
   .subheader {
@@ -83,11 +91,25 @@
   .pill-notes   { background: var(--teal-lt);  color: var(--teal);  }
   .pill-actions { background: var(--amber-lt); color: var(--amber); }
 
+  /* CONTACTS BAR */
+  .contacts-bar { background: var(--white); border-bottom: 1px solid var(--gray-100); padding: 8px 20px; display: flex; align-items: center; gap: 10px; overflow-x: auto; }
+  .contacts-bar-label { font-size: 11.5px; font-weight: 600; color: var(--gray-500); white-space: nowrap; }
+  .contact-chip { background: var(--gray-100); border-radius: 20px; padding: 4px 10px; font-size: 12px; font-weight: 600; color: var(--gray-900); display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .contact-chip .contact-phone { color: var(--gray-500); font-size: 11px; font-weight: 500; }
+  .add-contact-btn { background: var(--blue-lt); color: var(--blue); border: 1px solid transparent; border-radius: 20px; padding: 4px 12px; font-size: 11.5px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all .12s; white-space: nowrap; margin-right: auto; }
+  .add-contact-btn:hover { background: var(--blue); color: #fff; }
+
+  /* PARTICIPANT CHIPS */
+  .participant-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+  .participant-chip { background: var(--blue-lt); color: var(--blue); border-radius: 20px; padding: 4px 6px 4px 10px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .participant-chip-remove { background: none; border: none; color: var(--blue); cursor: pointer; font-family: inherit; font-size: 13px; line-height: 1; padding: 0 2px; border-radius: 50%; }
+  .participant-chip-remove:hover { background: var(--blue); color: #fff; }
+
   /* MAIN */
   main { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; padding: 16px 20px 24px; }
 
   /* PANEL */
-  .panel { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); display: flex; flex-direction: column; min-height: 460px; }
+  .panel { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); display: flex; flex-direction: column; height: 460px; }
   .panel-head { display: flex; align-items: center; gap: 8px; padding: 14px 16px 10px; border-bottom: 1px solid var(--gray-100); }
   .panel-icon { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
   .icon-tasks   { background: var(--blue-lt); }
@@ -95,6 +117,31 @@
   .icon-actions { background: var(--amber-lt); }
   .panel-title { font-size: 13.5px; font-weight: 700; color: var(--gray-900); flex: 1; }
   .panel-count { background: var(--gray-100); color: var(--gray-500); border-radius: 20px; padding: 1px 8px; font-size: 11px; font-weight: 600; }
+
+  /* VIEW TOGGLE */
+  .view-toggle { display: flex; gap: 2px; background: var(--gray-100); border-radius: 6px; padding: 2px; }
+  .view-toggle-btn { background: none; border: none; border-radius: 4px; padding: 3px 8px; font-size: 11px; cursor: pointer; color: var(--gray-500); font-family: inherit; white-space: nowrap; }
+  .view-toggle-btn.active { background: var(--white); color: var(--amber); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  #homeMeetingList.hidden, #homeMeetingTimeFilters.hidden, #homeMeetingCalendar.hidden { display: none; }
+
+  /* CALENDAR VIEW */
+  .calendar-view { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+  .cal-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; }
+  .cal-nav-btn { background: none; border: 1px solid var(--gray-100); border-radius: 6px; width: 26px; height: 26px; cursor: pointer; font-family: inherit; color: var(--gray-700); }
+  .cal-nav-btn:hover { background: var(--gray-100); }
+  .cal-title { font-size: 13px; font-weight: 700; color: var(--gray-900); }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; padding: 0 10px 8px; }
+  .cal-weekday { font-size: 10px; color: var(--gray-500); text-align: center; padding: 4px 0; }
+  .cal-day { min-height: 36px; border-radius: 6px; padding: 3px 0; font-size: 11.5px; text-align: center; cursor: pointer; border: 1px solid transparent; color: var(--gray-700); }
+  .cal-day:hover { background: var(--gray-100); }
+  .cal-day.today { border-color: var(--amber); font-weight: 700; }
+  .cal-day.selected { background: var(--amber); color: #fff; }
+  .cal-day.empty { visibility: hidden; cursor: default; }
+  .cal-day-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--amber); margin: 2px auto 0; }
+  .cal-day.selected .cal-day-dot { background: #fff; }
+  .cal-agenda { border-top: 1px solid var(--gray-100); padding: 10px 12px; }
+  .cal-agenda-empty { color: var(--gray-300); font-size: 12px; text-align: center; padding: 20px 0; }
+  .cal-agenda-title { font-size: 11.5px; font-weight: 700; color: var(--gray-500); margin-bottom: 6px; }
 
   /* FILTER */
   .filter-bar { padding: 8px 12px; display: flex; gap: 6px; border-bottom: 1px solid var(--gray-100); flex-wrap: wrap; justify-content: flex-end; }
@@ -119,7 +166,7 @@
   .task-card, .note-card, .action-card {
     border: 1px solid var(--gray-100);
     border-radius: var(--radius);
-    padding: 10px 12px;
+    padding: 7px 10px;
     background: var(--white);
     transition: box-shadow .15s;
     text-align: right;
@@ -127,31 +174,29 @@
   .task-card:hover, .note-card:hover, .action-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.08); }
   .action-card { border-right: 3px solid var(--amber); }
   .action-card.done-action { border-right-color: var(--green); }
-  .task-card { display: flex; align-items: flex-start; gap: 10px; flex-direction: row-reverse; }
-  .task-body { flex: 1; min-width: 0; }
-  .task-title { font-size: 13px; font-weight: 600; color: var(--gray-900); line-height: 1.4; }
-  .task-meta { display: flex; align-items: center; gap: 6px; margin-top: 5px; flex-wrap: wrap; justify-content: flex-end; }
-  .badge { border-radius: 4px; padding: 1px 6px; font-size: 10.5px; font-weight: 600; }
+  .task-card { display: flex; align-items: center; gap: 8px; flex-direction: row-reverse; flex-wrap: wrap; }
+  .task-title { font-size: 13px; font-weight: 600; color: var(--gray-900); line-height: 1.4; flex: 1 1 100px; min-width: 60px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .badge { border-radius: 4px; padding: 1px 6px; font-size: 10.5px; font-weight: 600; flex-shrink: 0; }
   .badge-high   { background: var(--red-lt);   color: var(--red);   }
   .badge-med    { background: var(--amber-lt);  color: var(--amber); }
   .badge-low    { background: var(--green-lt);  color: var(--green); }
   .badge-open   { background: var(--blue-lt);   color: var(--blue);  }
   .badge-closed { background: var(--green-lt);  color: var(--green); }
-  .due-date { font-size: 11px; color: var(--gray-500); }
+  .due-date { font-size: 11px; color: var(--gray-500); white-space: nowrap; flex-shrink: 0; }
   .due-date.overdue { color: var(--red); font-weight: 600; }
-  .note-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-direction: row-reverse; }
-  .note-subject { font-size: 12.5px; font-weight: 700; color: var(--gray-900); flex: 1; text-align: right; }
-  .note-date { font-size: 10.5px; color: var(--gray-300); white-space: nowrap; }
-  .note-content { display: flex; align-items: flex-start; gap: 8px; flex-direction: row-reverse; }
-  .note-body { font-size: 12.5px; color: var(--gray-700); line-height: 1.6; text-align: right; flex: 1; }
+  .task-card .crm-link { margin-right: 0; flex-shrink: 0; }
+  .note-header { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; flex-direction: row-reverse; }
+  .note-subject { font-size: 12.5px; font-weight: 700; color: var(--gray-900); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; }
+  .note-date { font-size: 10.5px; color: var(--gray-300); white-space: nowrap; flex-shrink: 0; }
+  .note-body { font-size: 12.5px; color: var(--gray-700); line-height: 1.5; text-align: right; }
   .note-tag { display: inline-block; background: var(--teal-lt); color: var(--teal); font-size: 10.5px; font-weight: 600; border-radius: 4px; padding: 1px 6px; white-space: nowrap; flex-shrink: 0; }
-  .action-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-direction: row-reverse; }
-  .action-title { font-size: 13px; font-weight: 600; color: var(--gray-900); flex: 1; text-align: right; }
+  .action-header { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; flex-direction: row-reverse; }
+  .action-title { font-size: 13px; font-weight: 600; color: var(--gray-900); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; }
   .action-body { font-size: 12px; color: var(--gray-500); line-height: 1.5; text-align: right; }
-  .action-footer { display: flex; align-items: center; gap: 8px; margin-top: 7px; flex-direction: row-reverse; }
-  .owner-chip { font-size: 11px; color: var(--gray-500); display: flex; align-items: center; gap: 4px; }
-  .avatar { width: 18px; height: 18px; border-radius: 50%; background: var(--blue); color: #fff; font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
-  .crm-link { font-size: 11px; color: var(--blue); text-decoration: none; background: var(--blue-lt); border-radius: 4px; padding: 2px 8px; margin-right: auto; white-space: nowrap; }
+  .action-footer { display: flex; align-items: center; gap: 6px; margin-top: 5px; flex-direction: row-reverse; flex-wrap: wrap; }
+  .owner-chip { font-size: 11px; color: var(--gray-500); display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+  .avatar { width: 18px; height: 18px; border-radius: 50%; background: var(--blue); color: #fff; font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .crm-link { font-size: 11px; color: var(--blue); text-decoration: none; background: var(--blue-lt); border-radius: 4px; padding: 2px 8px; margin-right: auto; white-space: nowrap; flex-shrink: 0; }
   .crm-link:hover { text-decoration: underline; }
 
   /* ERROR */
@@ -178,10 +223,6 @@
     padding: 0;
   }
   .done-btn:hover { border-color: var(--green); color: var(--green); background: var(--green-lt); }
-
-  /* TASK SIDE ACTIONS */
-  .task-side { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; align-items: flex-start; }
-  .task-side .crm-link { margin-right: 0; }
 
   /* REMARK BUTTON */
   .remark-btn {
@@ -282,7 +323,7 @@
   /* MEETING BADGES */
   .badge-upcoming { background: var(--blue-lt);  color: var(--blue);  }
   .badge-past     { background: var(--gray-100); color: var(--gray-500); }
-  .meeting-date { font-size: 12px; font-weight: 600; color: var(--gray-700); margin-top: 4px; }
+  .meeting-date { font-size: 12px; font-weight: 600; color: var(--gray-700); white-space: nowrap; flex-shrink: 0; }
   .meeting-date.upcoming { color: var(--blue); }
 
   /* ADD MEETING BUTTON */
@@ -309,12 +350,14 @@
   .form-group label { font-size: 12px; font-weight: 600; color: var(--gray-700); }
   .form-group input[type="text"],
   .form-group input[type="datetime-local"],
+  .form-group select,
   .form-group textarea {
     border: 1px solid var(--gray-100); border-radius: 6px;
     padding: 8px 12px; font-family: inherit; font-size: 13px;
     color: var(--gray-900); background: var(--white); width: 100%;
   }
-  .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--blue); }
+  .form-group select { cursor: pointer; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--blue); }
   .form-group input[type="datetime-local"] { direction: ltr; text-align: right; }
   .form-row { display: flex; gap: 10px; }
   .form-row .form-group { flex: 1; min-width: 0; }
@@ -349,6 +392,7 @@
   #homeView { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px 20px 24px; }
   #homeView.hidden { display: none; }
   #mainPanels.hidden { display: none; }
+  #contactsBar.hidden { display: none; }
   .ht-client {
     color: var(--blue); font-size: 11px; background: var(--blue-lt);
     border-radius: 4px; padding: 1px 7px; border: none;
@@ -366,6 +410,7 @@
   <div class="client-wrap">
     <span class="client-label">לקוח</span>
     <select id="clientSelect"><option value="">טוען חשבונות...</option></select>
+    <button class="add-client-btn" onclick="openClientModal()">+ לקוח</button>
   </div>
   <div class="header-date" id="headerDate"></div>
 </header>
@@ -375,6 +420,9 @@
   <div class="dbg-toolbar">
     <span>DEBUG CONSOLE</span>
     <button class="dbg-btn accent" onclick="testMeetingAPIs()">▶ Test Meeting APIs</button>
+    <button class="dbg-btn accent" onclick="testOnlineMeetingFields()">▶ Test Online Meeting Fields</button>
+    <button class="dbg-btn accent" onclick="testTaskFields()">▶ Test Task Fields</button>
+    <button class="dbg-btn accent" onclick="testAccountFields()">▶ Test Account Fields</button>
     <button class="dbg-btn" onclick="document.getElementById('debugLog').innerHTML=''">נקה</button>
     <button class="dbg-btn" onclick="toggleDebug()">✕ סגור</button>
   </div>
@@ -395,12 +443,19 @@
   </div>
 </div>
 
+<div class="contacts-bar hidden" id="contactsBar">
+  <span class="contacts-bar-label">אנשי קשר</span>
+  <div id="contactsChips" style="display:flex;align-items:center;gap:8px"></div>
+  <button class="add-contact-btn" onclick="openContactModal()">+ איש קשר</button>
+</div>
+
 <main id="mainPanels" class="hidden">
   <!-- TASKS -->
   <div class="panel">
     <div class="panel-head">
       <div class="panel-icon icon-tasks">📋</div>
       <div class="panel-title" id="taskPanelTitle">משימות פתוחות</div>
+      <button class="add-meeting-btn" onclick="openTaskModal(null)">+ משימה</button>
       <div class="panel-count" id="taskCount">—</div>
     </div>
     <div class="filter-bar" id="taskFilters">
@@ -419,6 +474,7 @@
     <div class="panel-head">
       <div class="panel-icon icon-notes">📝</div>
       <div class="panel-title">הערות</div>
+      <button class="add-meeting-btn" onclick="openNoteModal()">+ הערה</button>
       <div class="panel-count" id="noteCount">—</div>
     </div>
     <div class="filter-bar" id="noteFilters">
@@ -463,12 +519,21 @@
   <div class="panel">
     <div class="panel-head">
       <div class="panel-icon icon-actions">📅</div>
-      <div class="panel-title">פגישות עתידיות</div>
+      <div class="panel-title" id="homeMeetingPanelTitle">פגישות עתידיות</div>
+      <div class="view-toggle" id="homeMeetingViewToggle">
+        <button class="view-toggle-btn active" data-view="list">📋 רשימה</button>
+        <button class="view-toggle-btn" data-view="calendar">🗓 לוח שנה</button>
+      </div>
       <div class="panel-count" id="homeMeetingCount">—</div>
+    </div>
+    <div class="filter-bar" id="homeMeetingTimeFilters">
+      <button class="filter-btn active-a" data-tf="upcoming">עתידיות</button>
+      <button class="filter-btn" data-tf="past">קודמות</button>
     </div>
     <div class="item-list" id="homeMeetingList">
       <div class="loading-state"><div class="spinner"></div><div>טוען פגישות...</div></div>
     </div>
+    <div class="calendar-view hidden" id="homeMeetingCalendar"></div>
   </div>
 </div>
 
@@ -494,6 +559,34 @@
       <label for="meetingDesc">תיאור</label>
       <textarea id="meetingDesc" placeholder="תיאור (אופציונלי)..." style="min-height:72px"></textarea>
     </div>
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:normal">
+        <input type="checkbox" id="meetingOnlineTeams" style="width:auto">
+        פגישת Microsoft Teams מקוונת
+      </label>
+    </div>
+    <div class="form-group">
+      <label>מוזמנים</label>
+      <div class="participant-chips" id="meetingParticipantChips"></div>
+      <select id="meetingContactSelect">
+        <option value="">+ הוסף איש קשר...</option>
+      </select>
+      <input type="text" id="meetingParticipantInput" placeholder="או הקלד אימייל ולחץ Enter...">
+    </div>
+    <div class="form-group">
+      <label for="meetingReminder">תזכורת</label>
+      <select id="meetingReminder">
+        <option value="none">ללא תזכורת</option>
+        <option value="5:mins">5 דקות לפני</option>
+        <option value="10:mins">10 דקות לפני</option>
+        <option value="15:mins">15 דקות לפני</option>
+        <option value="30:mins">30 דקות לפני</option>
+        <option value="1:hrs">שעה לפני</option>
+        <option value="2:hrs">שעתיים לפני</option>
+        <option value="1:days">יום לפני</option>
+        <option value="1:weeks">שבוע לפני</option>
+      </select>
+    </div>
     <div class="modal-actions">
       <button class="btn-save" id="saveMeetingBtn" onclick="saveMeeting()">שמור</button>
       <button class="btn-cancel" onclick="closeMeetingModal()">ביטול</button>
@@ -510,6 +603,154 @@
     <div class="modal-actions">
       <button class="btn-save" id="saveRemarkBtn" onclick="saveRemark()">שמור</button>
       <button class="btn-cancel" onclick="closeRemarkModal()">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTE MODAL -->
+<div class="modal-backdrop" id="noteModal">
+  <div class="modal">
+    <div class="modal-title">הערה חדשה</div>
+    <div class="form-group">
+      <label for="noteTitleInput">כותרת</label>
+      <input type="text" id="noteTitleInput" placeholder="כותרת ההערה...">
+    </div>
+    <div class="form-group">
+      <label for="noteContentInput">תוכן</label>
+      <textarea id="noteContentInput" placeholder="כתוב הערה כאן..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-save" id="saveNoteBtn" onclick="saveNote()">שמור</button>
+      <button class="btn-cancel" onclick="closeNoteModal()">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<!-- TASK MODAL -->
+<div class="modal-backdrop" id="taskModal">
+  <div class="modal">
+    <div class="modal-title" id="taskModalTitle">עריכת משימה</div>
+    <div class="form-group">
+      <label for="taskSubject">נושא</label>
+      <input type="text" id="taskSubject" placeholder="נושא המשימה...">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="taskDueDate">תאריך יעד</label>
+        <input type="text" id="taskDueDate" placeholder="בחר תאריך..." readonly>
+      </div>
+      <div class="form-group">
+        <label for="taskPriority">עדיפות</label>
+        <select id="taskPriority">
+          <option value="Highest">גבוהה מאוד</option>
+          <option value="High">גבוהה</option>
+          <option value="Normal">רגילה</option>
+          <option value="Low">נמוכה</option>
+          <option value="Lowest">נמוכה מאוד</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="taskStatus">סטטוס</label>
+      <select id="taskStatus">
+        <option value="Not Started">לא התחיל</option>
+        <option value="In Progress">בתהליך</option>
+        <option value="Deferred">נדחה</option>
+        <option value="Waiting on someone else">מחכה לאחר</option>
+        <option value="Completed">הושלם</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="taskDesc">תיאור</label>
+      <textarea id="taskDesc" placeholder="תיאור (אופציונלי)..." style="min-height:72px"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-save" id="saveTaskBtn" onclick="saveTask()">שמור</button>
+      <button class="btn-cancel" onclick="closeTaskModal()">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<!-- CLIENT MODAL -->
+<div class="modal-backdrop" id="clientModal">
+  <div class="modal">
+    <div class="modal-title">לקוח חדש</div>
+    <div class="form-group">
+      <label for="clientNameInput">שם הלקוח</label>
+      <input type="text" id="clientNameInput" placeholder="שם הלקוח">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="clientPhoneInput">טלפון</label>
+        <input type="text" id="clientPhoneInput" placeholder="טלפון (אופציונלי)">
+      </div>
+      <div class="form-group">
+        <label for="clientWebsiteInput">אתר אינטרנט</label>
+        <input type="text" id="clientWebsiteInput" placeholder="https://...">
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="clientAccountNumberInput">מספר לקוח</label>
+      <input type="text" id="clientAccountNumberInput" placeholder="מספר לקוח (אופציונלי)">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="clientPremiumMethodSelect">אופן חישוב הפרמיה</label>
+        <select id="clientPremiumMethodSelect">
+          <option value="">— בחר —</option>
+          <option value="אחוז מפרמיה">אחוז מפרמיה</option>
+          <option value="אחוז מנכס בסיס">אחוז מנכס בסיס</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="clientFeeAmountInput">גובה העמלה</label>
+        <input type="text" id="clientFeeAmountInput" placeholder="(אופציונלי)">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="clientReferrerInput">ממליץ</label>
+        <input type="text" id="clientReferrerInput" placeholder="שם הממליץ (אופציונלי)">
+      </div>
+      <div class="form-group">
+        <label for="clientReferrerFeeInput">עמלת ממליץ</label>
+        <input type="text" id="clientReferrerFeeInput" placeholder="(אופציונלי)">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-save" id="saveClientBtn" onclick="saveClient()">שמור</button>
+      <button class="btn-cancel" onclick="closeClientModal()">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONTACT MODAL -->
+<div class="modal-backdrop" id="contactModal">
+  <div class="modal">
+    <div class="modal-title" id="contactModalTitle">איש קשר חדש</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="contactFirstNameInput">שם פרטי</label>
+        <input type="text" id="contactFirstNameInput" placeholder="שם פרטי (אופציונלי)...">
+      </div>
+      <div class="form-group">
+        <label for="contactLastNameInput">שם משפחה</label>
+        <input type="text" id="contactLastNameInput" placeholder="שם משפחה...">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="contactPhoneInput">טלפון נייד</label>
+        <input type="text" id="contactPhoneInput" placeholder="טלפון נייד (אופציונלי)...">
+      </div>
+      <div class="form-group">
+        <label for="contactEmailInput">אימייל</label>
+        <input type="text" id="contactEmailInput" placeholder="אימייל (אופציונלי)...">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-save" id="saveContactBtn" onclick="saveContact()">שמור</button>
+      <button class="btn-cancel" onclick="closeContactModal()">ביטול</button>
     </div>
   </div>
 </div>
@@ -578,6 +819,94 @@ function testMeetingAPIs() {
     .catch(function(e) { dbg("TEST 5 ✗", e, true); });
 }
 
+function isOnlineMeetingField(name) {
+  name = (name || "").toLowerCase();
+  return ["online", "meeting", "conferenc", "teams", "venue", "web_conf", "join", "remind"].some(function(k) {
+    return name.indexOf(k) !== -1;
+  });
+}
+
+function testOnlineMeetingFields() {
+  dbg("TEST FIELDS → ZOHO.CRM.META.getFields Events", "...");
+  ZOHO.CRM.META.getFields({ Entity: "Events" })
+    .then(function(r) {
+      const all = (r.fields || []).map(function(f) {
+        return { api_name: f.api_name, label: f.field_label, data_type: f.data_type, pick_list_values: f.pick_list_values };
+      });
+      console.log("ALL Events fields", all);
+      const relevant = all.filter(function(f) {
+        return isOnlineMeetingField(f.api_name) || isOnlineMeetingField(f.label);
+      }).map(function(f) {
+        return {
+          api_name: f.api_name,
+          label: f.label,
+          data_type: f.data_type,
+          options: (f.pick_list_values || []).map(function(p) { return p.actual_value || p.display_value; })
+        };
+      });
+      dbg("TEST FIELDS ✓ Events fields (filtered, see console for full list)", relevant);
+    })
+    .catch(function(e) { dbg("TEST FIELDS ✗ getFields", e, true); });
+
+  if (!currentAccountId) return;
+  dbg("TEST RAW → getRelatedRecords Events (raw record for inspection)", "...");
+  ZOHO.CRM.API.getRelatedRecords({ Entity: "Accounts", RecordID: currentAccountId, RelatedList: "Events", page: 1, per_page: 5 })
+    .then(function(r) {
+      const records = r.data || [];
+      console.log("ALL raw Events records", records);
+      const relevant = records.map(function(rec) {
+        const out = { id: rec.id, Event_Title: rec.Event_Title };
+        Object.keys(rec).forEach(function(k) {
+          if (isOnlineMeetingField(k)) out[k] = rec[k];
+        });
+        return out;
+      });
+      dbg("TEST RAW ✓ raw Events records (filtered, see console for full record)", relevant);
+    })
+    .catch(function(e) { dbg("TEST RAW ✗", e, true); });
+}
+
+function testTaskFields() {
+  dbg("TEST TASK FIELDS → ZOHO.CRM.META.getFields Tasks", "...");
+  ZOHO.CRM.META.getFields({ Entity: "Tasks" })
+    .then(function(r) {
+      const all = (r.fields || []).map(function(f) {
+        return { api_name: f.api_name, label: f.field_label, data_type: f.data_type, pick_list_values: f.pick_list_values };
+      });
+      console.log("ALL Tasks fields", all);
+      const relevant = all.filter(function(f) {
+        return ["priority","status","subject","due_date","description"].indexOf(f.api_name.toLowerCase()) !== -1;
+      }).map(function(f) {
+        return {
+          api_name: f.api_name,
+          label: f.label,
+          data_type: f.data_type,
+          options: (f.pick_list_values || []).map(function(p) { return p.actual_value || p.display_value; })
+        };
+      });
+      dbg("TEST TASK FIELDS ✓ (filtered, see console for full list)", relevant);
+    })
+    .catch(function(e) { dbg("TEST TASK FIELDS ✗ getFields", e, true); });
+}
+
+function testAccountFields() {
+  dbg("TEST ACCOUNT FIELDS → ZOHO.CRM.META.getFields Accounts (full list in console)", "...");
+  ZOHO.CRM.META.getFields({ Entity: "Accounts" })
+    .then(function(r) {
+      const all = (r.fields || []).map(function(f) {
+        return {
+          api_name: f.api_name,
+          label: f.field_label,
+          data_type: f.data_type,
+          options: (f.pick_list_values || []).map(function(p) { return p.actual_value || p.display_value; })
+        };
+      });
+      console.log("ALL Accounts fields", all);
+      dbg("TEST ACCOUNT FIELDS ✓ — " + all.length + " fields logged to console (see DevTools console for full list with options)", null);
+    })
+    .catch(function(e) { dbg("TEST ACCOUNT FIELDS ✗ getFields", e, true); });
+}
+
 // ── UTILS ─────────────────────────────────────────────────────
 function esc(s) {
   return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
@@ -612,9 +941,10 @@ function priorityHe(p) {
 }
 
 // ── STATE ─────────────────────────────────────────────────────
-let allTasks = [], allNotes = [], allMeetings = [];
+let allTasks = [], allNotes = [], allMeetings = [], allContacts = [];
 let taskFilter = "all", noteFilter = "all", meetingTimeFilter = "upcoming";
-let currentAccountId = null, remarkTaskId = null, editingMeetingId = null;
+let currentAccountId = null, remarkTaskId = null, editingMeetingId = null, editingContactId = null;
+let meetingParticipantEmails = [];
 
 // ── FILTERS ───────────────────────────────────────────────────
 document.getElementById("taskFilters").addEventListener("click", function(e) {
@@ -680,6 +1010,7 @@ function loadAccounts() {
       if (!opt.value) {
         document.getElementById("homeView").classList.remove("hidden");
         document.getElementById("mainPanels").classList.add("hidden");
+        document.getElementById("contactsBar").classList.add("hidden");
         return;
       }
       loadClientData(opt.value, {
@@ -695,10 +1026,80 @@ function loadAccounts() {
   });
 }
 
+// ── CLIENT MODAL ──────────────────────────────────────────────
+function openClientModal() {
+  document.getElementById("clientNameInput").value = "";
+  document.getElementById("clientPhoneInput").value = "";
+  document.getElementById("clientWebsiteInput").value = "";
+  document.getElementById("clientAccountNumberInput").value = "";
+  document.getElementById("clientReferrerInput").value = "";
+  document.getElementById("clientReferrerFeeInput").value = "";
+  document.getElementById("clientFeeAmountInput").value = "";
+  document.getElementById("clientPremiumMethodSelect").value = "";
+  const saveBtn = document.getElementById("saveClientBtn");
+  saveBtn.disabled = false;
+  saveBtn.textContent = "שמור";
+  document.getElementById("clientModal").classList.add("open");
+  setTimeout(function() { document.getElementById("clientNameInput").focus(); }, 50);
+}
+
+function closeClientModal() {
+  document.getElementById("clientModal").classList.remove("open");
+}
+
+function saveClient() {
+  const name           = document.getElementById("clientNameInput").value.trim();
+  const phone          = document.getElementById("clientPhoneInput").value.trim();
+  const website        = document.getElementById("clientWebsiteInput").value.trim();
+  const accountNumber  = document.getElementById("clientAccountNumberInput").value.trim();
+  const referrer       = document.getElementById("clientReferrerInput").value.trim();
+  const referrerFee    = document.getElementById("clientReferrerFeeInput").value.trim();
+  const feeAmount      = document.getElementById("clientFeeAmountInput").value.trim();
+  const premiumMethod  = document.getElementById("clientPremiumMethodSelect").value;
+  if (!name) { document.getElementById("clientNameInput").focus(); return; }
+
+  const saveBtn = document.getElementById("saveClientBtn");
+  saveBtn.disabled = true;
+  saveBtn.textContent = "שומר...";
+
+  const apiData = { Account_Name: name };
+  if (phone)          apiData.Phone = phone;
+  if (website)        apiData.Website = website;
+  if (accountNumber)  apiData.Account_Number = accountNumber;
+  if (referrer)        apiData.field2 = referrer;
+  if (referrerFee)     apiData.field4 = referrerFee;
+  if (feeAmount)       apiData.field5 = feeAmount;
+  if (premiumMethod)  apiData.field1 = [premiumMethod];
+
+  ZOHO.CRM.API.insertRecord({ Entity: "Accounts", APIData: apiData }).then(function(resp) {
+    const newId = resp.data[0].details.id;
+    const sel = document.getElementById("clientSelect");
+    const opt = document.createElement("option");
+    opt.value = newId;
+    opt.textContent = name;
+    opt.dataset.phone = phone;
+    opt.dataset.industry = "";
+    opt.dataset.owner = "";
+    sel.appendChild(opt);
+    sel.value = newId;
+    closeClientModal();
+    loadClientData(newId, { name: name, phone: phone, industry: "", owner: "" });
+  }).catch(function(err) {
+    saveBtn.disabled = false;
+    saveBtn.textContent = "שמור";
+    showError("לא ניתן ליצור לקוח — " + JSON.stringify(err));
+  });
+}
+
+document.getElementById("clientModal").addEventListener("click", function(e) {
+  if (e.target === this) closeClientModal();
+});
+
 // ── LOAD CLIENT DATA ──────────────────────────────────────────
 function loadClientData(id, meta) {
   document.getElementById("homeView").classList.add("hidden");
   document.getElementById("mainPanels").classList.remove("hidden");
+  document.getElementById("contactsBar").classList.remove("hidden");
 
   currentAccountId = id;
   document.getElementById("clientName").textContent = meta.name;
@@ -742,7 +1143,99 @@ function loadClientData(id, meta) {
   });
 
   loadMeetings(id);
+  loadContacts(id);
 }
+
+// ── CONTACTS ──────────────────────────────────────────────────
+function loadContacts(accountId) {
+  document.getElementById("contactsChips").innerHTML = "";
+  ZOHO.CRM.API.getRelatedRecords({ Entity: "Accounts", RecordID: accountId, RelatedList: "Contacts", page: 1, per_page: 50 })
+    .then(function(resp) {
+      allContacts = resp.data || [];
+      renderContacts();
+    })
+    .catch(function(err) { showError("לא ניתן לטעון אנשי קשר — " + JSON.stringify(err)); });
+}
+
+function renderContacts() {
+  const chips = document.getElementById("contactsChips");
+  if (!allContacts.length) {
+    chips.innerHTML = '<span style="font-size:11.5px;color:var(--gray-300)">אין אנשי קשר</span>';
+    return;
+  }
+  chips.innerHTML = allContacts.map(function(c) {
+    const name  = [c.First_Name, c.Last_Name].filter(Boolean).join(" ") || "ללא שם";
+    const phone = c.Mobile || "";
+    return '<span class="contact-chip" data-contact-id="' + esc(c.id) + '" style="cursor:pointer">' + esc(name) +
+      (phone ? '<span class="contact-phone">' + esc(phone) + '</span>' : "") +
+      '</span>';
+  }).join("");
+}
+
+document.getElementById("contactsChips").addEventListener("click", function(e) {
+  const chip = e.target.closest(".contact-chip");
+  if (chip && chip.dataset.contactId) openContactModal(chip.dataset.contactId);
+});
+
+function openContactModal(contactId) {
+  if (!currentAccountId) { showError("יש לבחור לקוח תחילה"); return; }
+  editingContactId = contactId || null;
+  const contact = contactId ? allContacts.find(function(c) { return c.id === contactId; }) : null;
+  document.getElementById("contactModalTitle").textContent = contact ? "עריכת איש קשר" : "איש קשר חדש";
+  document.getElementById("contactFirstNameInput").value = contact ? (contact.First_Name || "") : "";
+  document.getElementById("contactLastNameInput").value = contact ? (contact.Last_Name || "") : "";
+  document.getElementById("contactPhoneInput").value = contact ? (contact.Mobile || "") : "";
+  document.getElementById("contactEmailInput").value = contact ? (contact.Email || "") : "";
+  const saveBtn = document.getElementById("saveContactBtn");
+  saveBtn.disabled = false;
+  saveBtn.textContent = "שמור";
+  document.getElementById("contactModal").classList.add("open");
+  setTimeout(function() { document.getElementById("contactFirstNameInput").focus(); }, 50);
+}
+
+function closeContactModal() {
+  document.getElementById("contactModal").classList.remove("open");
+  editingContactId = null;
+}
+
+function saveContact() {
+  const firstName = document.getElementById("contactFirstNameInput").value.trim();
+  const lastName  = document.getElementById("contactLastNameInput").value.trim();
+  const phone     = document.getElementById("contactPhoneInput").value.trim();
+  const email     = document.getElementById("contactEmailInput").value.trim();
+  if (!lastName) { document.getElementById("contactLastNameInput").focus(); return; }
+
+  const saveBtn = document.getElementById("saveContactBtn");
+  saveBtn.disabled = true;
+  saveBtn.textContent = "שומר...";
+
+  const apiData = { Last_Name: lastName };
+  if (firstName) apiData.First_Name = firstName;
+  if (phone)     apiData.Mobile = phone;
+  if (email)     apiData.Email = email;
+
+  let apiCall;
+  if (editingContactId) {
+    apiData.id = editingContactId;
+    apiCall = ZOHO.CRM.API.updateRecord({ Entity: "Contacts", APIData: apiData, Trigger: [] });
+  } else {
+    apiData.Account_Name = currentAccountId;
+    apiCall = ZOHO.CRM.API.insertRecord({ Entity: "Contacts", APIData: apiData });
+  }
+
+  apiCall.then(function() {
+    closeContactModal();
+    loadContacts(currentAccountId);
+  }).catch(function(err) {
+    saveBtn.disabled = false;
+    saveBtn.textContent = "שמור";
+    showError("לא ניתן לשמור איש קשר — " + JSON.stringify(err));
+  });
+}
+
+document.getElementById("contactModal").addEventListener("click", function(e) {
+  if (e.target === this) closeContactModal();
+});
 
 // ── RENDER TASKS ──────────────────────────────────────────────
 function renderTasks() {
@@ -776,22 +1269,17 @@ function renderTasks() {
         ${isArchive
           ? '<span class="done-check">✓</span>'
           : `<button class="done-btn" data-task-id="${esc(t.id)}" title="סמן כהושלם">✓</button>`}
-        <div class="task-body">
-          <div class="task-title">${esc(t.Subject || "משימה ללא שם")}</div>
-          <div class="task-meta">
-            ${isArchive
-              ? '<span class="badge badge-closed">הושלם</span>'
-              : `<span class="badge ${bc}">${priorityHe(t.Priority)}</span>`}
-            ${due ? `<span class="due-date ${ov&&!isArchive?"overdue":""}">${fmtDate(due)}</span>` : ""}
-            ${t.Owner ? `<span style="font-size:11px;color:var(--gray-500)">${esc(t.Owner.name)}</span>` : ""}
-          </div>
-        </div>
-        <div class="task-side">
-          ${t.id ? `<a class="crm-link" href="https://crm.zoho.com/crm/org919146768/tab/Tasks/${t.id}" target="_blank">פתח ↗</a>` : ""}
-          ${isArchive
-            ? `<button class="remark-btn" data-reopen-id="${esc(t.id)}" style="color:var(--blue)">↩ פתח מחדש</button>`
-            : `<button class="remark-btn" data-task-id="${esc(t.id)}" data-task-subject="${esc(t.Subject||'')}">+ הערה</button>`}
-        </div>
+        <div class="task-title">${esc(t.Subject || "משימה ללא שם")}</div>
+        ${isArchive
+          ? '<span class="badge badge-closed">הושלם</span>'
+          : `<span class="badge ${bc}">${priorityHe(t.Priority)}</span>`}
+        ${due ? `<span class="due-date ${ov&&!isArchive?"overdue":""}">${fmtDate(due)}</span>` : ""}
+        ${t.Owner ? `<span style="font-size:11px;color:var(--gray-500);white-space:nowrap;flex-shrink:0">${esc(t.Owner.name)}</span>` : ""}
+        ${t.id ? `<a class="crm-link" href="https://crm.zoho.com/crm/org919146768/tab/Tasks/${t.id}" target="_blank">פתח ↗</a>` : ""}
+        <button class="edit-meeting-btn edit-task-btn" data-edit-task-id="${esc(t.id)}">ערוך</button>
+        ${isArchive
+          ? `<button class="remark-btn" data-reopen-id="${esc(t.id)}" style="color:var(--blue)">↩ פתח מחדש</button>`
+          : `<button class="remark-btn" data-task-id="${esc(t.id)}" data-task-subject="${esc(t.Subject||'')}">+ הערה</button>`}
       </div>`;
   }).join("");
 }
@@ -821,12 +1309,10 @@ function renderNotes() {
       <div class="note-card">
         <div class="note-header">
           <div class="note-subject">${esc(n.Note_Title || "הערה")}</div>
+          ${n.Created_By ? `<span class="note-tag">${esc(n.Created_By.name)}</span>` : ""}
           <div class="note-date">${fmtDate(n.Created_Time)}</div>
         </div>
-        <div class="note-content">
-          <div class="note-body">${esc(preview)}</div>
-          ${n.Created_By ? `<span class="note-tag">${esc(n.Created_By.name)}</span>` : ""}
-        </div>
+        <div class="note-body">${esc(preview)}</div>
       </div>`;
   }).join("");
 }
@@ -863,17 +1349,19 @@ function renderActivities() {
     const desc     = (a.Description || "").trim();
     const meetDate = a.Start_DateTime || "";
     const upcoming = meetDate && new Date(meetDate) >= now;
+    const joinUrl  = a.$meeting_details && a.$meeting_details.joinmeeting_url;
     return `
       <div class="action-card ${done?"done-action":""}">
         <div class="action-header">
           <div class="action-title">${esc(a.Event_Title || a.Subject || "פגישה")}</div>
+          ${meetDate ? `<span class="meeting-date ${upcoming?"upcoming":""}">📅 ${fmtDateTime(meetDate)}</span>` : ""}
           <span class="badge ${upcoming?"badge-upcoming":"badge-past"}">${upcoming?"עתידי":"עבר"}</span>
         </div>
-        ${meetDate ? `<div class="meeting-date ${upcoming?"upcoming":""}">📅 ${fmtDateTime(meetDate)}</div>` : ""}
         ${desc ? `<div class="action-body">${esc(desc.substring(0,140))}${desc.length>140?"…":""}</div>` : ""}
         <div class="action-footer">
           ${a.Owner ? `<div class="owner-chip"><div class="avatar">${esc(a.Owner.name.charAt(0))}</div>${esc(a.Owner.name)}</div>` : ""}
           <button class="edit-meeting-btn" data-meeting-id="${esc(a.id)}">ערוך</button>
+          ${joinUrl ? `<a class="crm-link" href="${esc(joinUrl)}" target="_blank">🟦 הצטרף ל-Teams ↗</a>` : ""}
           ${a.id ? `<a class="crm-link" href="https://crm.zoho.com/crm/org919146768/tab/Events/${a.id}" target="_blank">פתח ↗</a>` : ""}
         </div>
       </div>`;
@@ -889,6 +1377,11 @@ document.getElementById("taskList").addEventListener("click", function(e) {
   const remarkBtn = e.target.closest(".remark-btn");
   if (remarkBtn && remarkBtn.dataset.taskId) {
     openRemarkModal(remarkBtn.dataset.taskId, remarkBtn.dataset.taskSubject || "");
+    return;
+  }
+  const editTaskBtn = e.target.closest(".edit-task-btn");
+  if (editTaskBtn && editTaskBtn.dataset.editTaskId) {
+    openTaskModal(editTaskBtn.dataset.editTaskId);
   }
 });
 
@@ -955,15 +1448,7 @@ function saveRemark() {
     }
   }).then(function() {
     closeRemarkModal();
-    if (currentAccountId) {
-      ZOHO.CRM.API.getRelatedRecords({
-        Entity: "Accounts", RecordID: currentAccountId,
-        RelatedList: "Notes", page: 1, per_page: 50
-      }).then(function(resp) {
-        allNotes = resp.data || [];
-        renderNotes();
-      });
-    }
+    reloadNotes();
   }).catch(function(err) {
     saveBtn.disabled = false;
     saveBtn.textContent = "שמור";
@@ -975,22 +1460,81 @@ document.getElementById("remarkModal").addEventListener("click", function(e) {
   if (e.target === this) closeRemarkModal();
 });
 
+function reloadNotes() {
+  if (!currentAccountId) return;
+  ZOHO.CRM.API.getRelatedRecords({
+    Entity: "Accounts", RecordID: currentAccountId,
+    RelatedList: "Notes", page: 1, per_page: 50
+  }).then(function(resp) {
+    allNotes = resp.data || [];
+    renderNotes();
+  }).catch(function(err) { showError("לא ניתן לרענן הערות — " + JSON.stringify(err)); });
+}
+
+// ── NOTE MODAL ────────────────────────────────────────────────
+function openNoteModal() {
+  if (!currentAccountId) { showError("יש לבחור לקוח תחילה"); return; }
+  document.getElementById("noteTitleInput").value = "";
+  document.getElementById("noteContentInput").value = "";
+  const saveBtn = document.getElementById("saveNoteBtn");
+  saveBtn.disabled = false;
+  saveBtn.textContent = "שמור";
+  document.getElementById("noteModal").classList.add("open");
+  setTimeout(function() { document.getElementById("noteTitleInput").focus(); }, 50);
+}
+
+function closeNoteModal() {
+  document.getElementById("noteModal").classList.remove("open");
+}
+
+function saveNote() {
+  const title   = document.getElementById("noteTitleInput").value.trim();
+  const content = document.getElementById("noteContentInput").value.trim();
+  if (!content) { document.getElementById("noteContentInput").focus(); return; }
+
+  const saveBtn = document.getElementById("saveNoteBtn");
+  saveBtn.disabled = true;
+  saveBtn.textContent = "שומר...";
+
+  ZOHO.CRM.API.insertRecord({
+    Entity: "Notes",
+    APIData: {
+      Note_Title: title || "הערה",
+      Note_Content: content,
+      Parent_Id: currentAccountId,
+      $se_module: "Accounts"
+    }
+  }).then(function() {
+    closeNoteModal();
+    reloadNotes();
+  }).catch(function(err) {
+    saveBtn.disabled = false;
+    saveBtn.textContent = "שמור";
+    showError("לא ניתן לשמור הערה — " + JSON.stringify(err));
+  });
+}
+
+document.getElementById("noteModal").addEventListener("click", function(e) {
+  if (e.target === this) closeNoteModal();
+});
+
 // ── MEETING MODAL ─────────────────────────────────────────────
-let fpStart = null, fpEnd = null;
+let fpStart = null, fpEnd = null, fpTaskDue = null;
+
+const heLocale = {
+  weekdays: {
+    shorthand: ["א׳","ב׳","ג׳","ד׳","ה׳","ו׳","ש׳"],
+    longhand:  ["ראשון","שני","שלישי","רביעי","חמישי","שישי","שבת"]
+  },
+  months: {
+    shorthand: ["ינו׳","פבר׳","מרץ","אפר׳","מאי","יוני","יולי","אוג׳","ספט׳","אוק׳","נוב׳","דצמ׳"],
+    longhand:  ["ינואר","פברואר","מרץ","אפריל","מאי","יוני","יולי","אוגוסט","ספטמבר","אוקטובר","נובמבר","דצמבר"]
+  },
+  firstDayOfWeek: 0
+};
 
 function initFlatpickr() {
   if (fpStart) return;
-  const heLocale = {
-    weekdays: {
-      shorthand: ["א׳","ב׳","ג׳","ד׳","ה׳","ו׳","ש׳"],
-      longhand:  ["ראשון","שני","שלישי","רביעי","חמישי","שישי","שבת"]
-    },
-    months: {
-      shorthand: ["ינו׳","פבר׳","מרץ","אפר׳","מאי","יוני","יולי","אוג׳","ספט׳","אוק׳","נוב׳","דצמ׳"],
-      longhand:  ["ינואר","פברואר","מרץ","אפריל","מאי","יוני","יולי","אוגוסט","ספטמבר","אוקטובר","נובמבר","דצמבר"]
-    },
-    firstDayOfWeek: 0
-  };
   const cfg = { enableTime: true, time_24hr: true, dateFormat: "Y-m-d H:i",
                 locale: heLocale, disableMobile: true, appendTo: document.body };
   fpStart = flatpickr("#meetingStart", Object.assign({}, cfg, {
@@ -1005,6 +1549,11 @@ function initFlatpickr() {
   fpEnd = flatpickr("#meetingEnd", cfg);
 }
 
+function initTaskFlatpickr() {
+  if (fpTaskDue) return;
+  fpTaskDue = flatpickr("#taskDueDate", { dateFormat: "Y-m-d", locale: heLocale, disableMobile: true, appendTo: document.body });
+}
+
 function toZohoDT(dtStr) {
   if (!dtStr) return "";
   const d = new Date(dtStr.replace(" ", "T"));
@@ -1014,6 +1563,34 @@ function toZohoDT(dtStr) {
   const sign = off >= 0 ? "+" : "-";
   const abs = Math.abs(off);
   return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:00${sign}${p(Math.floor(abs/60))}:${p(abs%60)}`;
+}
+
+const MS_PER_UNIT = { mins: 60000, hrs: 3600000, days: 86400000, weeks: 604800000 };
+
+function buildReminderAt(startDtStr, unit, period) {
+  const start = new Date(startDtStr.replace(" ", "T"));
+  if (isNaN(start)) return "";
+  const triggerDate = new Date(start.getTime() - unit * MS_PER_UNIT[period]);
+  const p = n => String(n).padStart(2, "0");
+  const off = -triggerDate.getTimezoneOffset();
+  const sign = off >= 0 ? "+" : "-";
+  const abs = Math.abs(off);
+  return `${triggerDate.getFullYear()}-${p(triggerDate.getMonth()+1)}-${p(triggerDate.getDate())}T${p(triggerDate.getHours())}:${p(triggerDate.getMinutes())}:00${sign}${p(Math.floor(abs/60))}:${p(abs%60)}`;
+}
+
+const REMINDER_PRESETS = ["5:mins","10:mins","15:mins","30:mins","1:hrs","2:hrs","1:days","1:weeks"];
+
+function reminderValueFromRemindAt(remindAt, startDtStr) {
+  if (!remindAt || !startDtStr) return "none";
+  const remindDate = new Date(remindAt);
+  const startDate = new Date(startDtStr);
+  if (isNaN(remindDate) || isNaN(startDate)) return "none";
+  const diffMs = startDate.getTime() - remindDate.getTime();
+  const match = REMINDER_PRESETS.find(function(preset) {
+    const parts = preset.split(":");
+    return Math.abs(diffMs - Number(parts[0]) * MS_PER_UNIT[parts[1]]) < 60000;
+  });
+  return match || "none";
 }
 
 function openMeetingModal(meetingId) {
@@ -1026,6 +1603,16 @@ function openMeetingModal(meetingId) {
   fpStart.setDate(meeting ? (meeting.Start_DateTime || meeting.Due_Date || "") : "", false);
   fpEnd.setDate(meeting ? (meeting.End_DateTime || "") : "", false);
   document.getElementById("meetingDesc").value = meeting ? (meeting.Description || "") : "";
+  document.getElementById("meetingOnlineTeams").checked = !!(meeting && meeting.Meeting_Venue__s === "Online");
+  if (meeting) {
+    meetingParticipantEmails = (meeting.Participants || []).filter(function(p) { return p.type === "email"; }).map(function(p) { return p.participant; });
+  } else {
+    meetingParticipantEmails = allContacts.filter(function(c) { return c.Email; }).map(function(c) { return c.Email; });
+  }
+  document.getElementById("meetingParticipantInput").value = "";
+  renderMeetingParticipantChips();
+  renderMeetingContactSelect();
+  document.getElementById("meetingReminder").value = reminderValueFromRemindAt(meeting && meeting.Remind_At, meeting && meeting.Start_DateTime);
   const saveBtn = document.getElementById("saveMeetingBtn");
   saveBtn.disabled = false;
   saveBtn.textContent = "שמור";
@@ -1036,9 +1623,64 @@ function openMeetingModal(meetingId) {
 function closeMeetingModal() {
   document.getElementById("meetingModal").classList.remove("open");
   editingMeetingId = null;
+  meetingParticipantEmails = [];
+  renderMeetingParticipantChips();
+  document.getElementById("meetingParticipantInput").value = "";
   if (fpStart) fpStart.clear();
   if (fpEnd)   fpEnd.clear();
 }
+
+function renderMeetingParticipantChips() {
+  const wrap = document.getElementById("meetingParticipantChips");
+  wrap.innerHTML = meetingParticipantEmails.map(function(email) {
+    const contact = allContacts.find(function(c) { return c.Email === email; });
+    const label = contact ? ([contact.First_Name, contact.Last_Name].filter(Boolean).join(" ") || email) : email;
+    return '<span class="participant-chip">' + esc(label) +
+      '<button type="button" class="participant-chip-remove" data-email="' + esc(email) + '">✕</button></span>';
+  }).join("");
+}
+
+function addMeetingParticipant(raw) {
+  const email = raw.trim();
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRe.test(email)) return;
+  if (meetingParticipantEmails.indexOf(email) === -1) meetingParticipantEmails.push(email);
+  renderMeetingParticipantChips();
+  renderMeetingContactSelect();
+}
+
+function renderMeetingContactSelect() {
+  const sel = document.getElementById("meetingContactSelect");
+  const available = allContacts.filter(function(c) {
+    return c.Email && meetingParticipantEmails.indexOf(c.Email) === -1;
+  });
+  sel.innerHTML = '<option value="">+ הוסף איש קשר...</option>' +
+    available.map(function(c) {
+      const name = [c.First_Name, c.Last_Name].filter(Boolean).join(" ") || c.Email;
+      return '<option value="' + esc(c.Email) + '">' + esc(name) + '</option>';
+    }).join("");
+}
+
+document.getElementById("meetingContactSelect").addEventListener("change", function() {
+  if (this.value) addMeetingParticipant(this.value);
+  this.value = "";
+});
+
+document.getElementById("meetingParticipantChips").addEventListener("click", function(e) {
+  const btn = e.target.closest(".participant-chip-remove");
+  if (!btn) return;
+  meetingParticipantEmails = meetingParticipantEmails.filter(function(e) { return e !== btn.dataset.email; });
+  renderMeetingParticipantChips();
+  renderMeetingContactSelect();
+});
+
+document.getElementById("meetingParticipantInput").addEventListener("keydown", function(e) {
+  if (e.key === "Enter" || e.key === ",") {
+    e.preventDefault();
+    addMeetingParticipant(this.value);
+    this.value = "";
+  }
+});
 
 function saveMeeting() {
   const subject = document.getElementById("meetingSubject").value.trim();
@@ -1056,14 +1698,34 @@ function saveMeeting() {
     Event_Title: subject,
     Start_DateTime: toZohoDT(start),
     End_DateTime: toZohoDT(end || start),
-    Description: desc
+    Description: desc,
+    $send_notification: true
   };
+
+  const reminderVal = document.getElementById("meetingReminder").value;
+  if (reminderVal === "none") {
+    apiData.Remind_At = null;
+  } else {
+    const parts = reminderVal.split(":");
+    apiData.Remind_At = buildReminderAt(start, Number(parts[0]), parts[1]);
+  }
+
+  if (document.getElementById("meetingOnlineTeams").checked) {
+    apiData.Meeting_Venue__s = "Online";
+    apiData.Meeting_Provider__s = "Microsoft Teams";
+  }
+
+  const newEmailParticipants = meetingParticipantEmails.map(function(email) { return { type: "email", participant: email }; });
 
   let apiCall;
   if (editingMeetingId) {
+    const existingMeeting = allMeetings.find(function(a) { return a.id === editingMeetingId; });
+    const otherParticipants = existingMeeting ? (existingMeeting.Participants || []).filter(function(p) { return p.type !== "email"; }) : [];
+    apiData.Participants = otherParticipants.concat(newEmailParticipants);
     apiData.id = editingMeetingId;
     apiCall = ZOHO.CRM.API.updateRecord({ Entity: "Events", APIData: apiData, Trigger: [] });
   } else {
+    if (newEmailParticipants.length) apiData.Participants = newEmailParticipants;
     apiData.What_Id = currentAccountId;
     apiData.$se_module = "Accounts";
     apiCall = ZOHO.CRM.API.insertRecord({ Entity: "Events", APIData: apiData });
@@ -1078,6 +1740,88 @@ function saveMeeting() {
     showError("לא ניתן לשמור פגישה — " + JSON.stringify(err));
   });
 }
+
+// ── TASK MODAL ────────────────────────────────────────────────
+let editingTaskId = null;
+
+function openTaskModal(taskId) {
+  if (!taskId && !currentAccountId) { showError("יש לבחור לקוח תחילה"); return; }
+  initTaskFlatpickr();
+  editingTaskId = taskId || null;
+  const task = taskId ? allTasks.find(function(t) { return t.id === taskId; }) : null;
+  if (taskId && !task) return;
+  document.getElementById("taskModalTitle").textContent = task ? "עריכת משימה" : "משימה חדשה";
+  document.getElementById("taskSubject").value = task ? (task.Subject || "") : "";
+  fpTaskDue.setDate(task ? (task.Due_Date || "") : "", false);
+  document.getElementById("taskPriority").value = task ? (task.Priority || "Normal") : "Normal";
+  document.getElementById("taskStatus").value = task ? (task.Status || "Not Started") : "Not Started";
+  document.getElementById("taskDesc").value = task ? (task.Description || "") : "";
+  const saveBtn = document.getElementById("saveTaskBtn");
+  saveBtn.disabled = false;
+  saveBtn.textContent = "שמור";
+  document.getElementById("taskModal").classList.add("open");
+  setTimeout(function() { document.getElementById("taskSubject").focus(); }, 50);
+}
+
+function closeTaskModal() {
+  document.getElementById("taskModal").classList.remove("open");
+  editingTaskId = null;
+  if (fpTaskDue) fpTaskDue.clear();
+}
+
+function saveTask() {
+  const subject = document.getElementById("taskSubject").value.trim();
+  const due      = document.getElementById("taskDueDate").value;
+  const priority = document.getElementById("taskPriority").value;
+  const status   = document.getElementById("taskStatus").value;
+  const desc     = document.getElementById("taskDesc").value.trim();
+  if (!subject) { document.getElementById("taskSubject").focus(); return; }
+
+  const saveBtn = document.getElementById("saveTaskBtn");
+  saveBtn.disabled = true;
+  saveBtn.textContent = "שומר...";
+
+  const apiData = {
+    Subject: subject,
+    Due_Date: due || null,
+    Priority: priority,
+    Status: status,
+    Description: desc
+  };
+
+  let apiCall;
+  if (editingTaskId) {
+    apiData.id = editingTaskId;
+    apiCall = ZOHO.CRM.API.updateRecord({ Entity: "Tasks", APIData: apiData, Trigger: [] });
+  } else {
+    apiData.What_Id = currentAccountId;
+    apiData.$se_module = "Accounts";
+    apiCall = ZOHO.CRM.API.insertRecord({ Entity: "Tasks", APIData: apiData });
+  }
+
+  apiCall.then(function() {
+    closeTaskModal();
+    reloadTasks();
+  }).catch(function(err) {
+    saveBtn.disabled = false;
+    saveBtn.textContent = "שמור";
+    showError("לא ניתן לשמור משימה — " + JSON.stringify(err));
+  });
+}
+
+function reloadTasks() {
+  if (!currentAccountId) return;
+  ZOHO.CRM.API.getRelatedRecords({ Entity: "Accounts", RecordID: currentAccountId, RelatedList: "Tasks", page: 1, per_page: 50 })
+    .then(function(resp) {
+      allTasks = resp.data || [];
+      renderTasks();
+    })
+    .catch(function(err) { showError("לא ניתן לרענן משימות — " + JSON.stringify(err)); });
+}
+
+document.getElementById("taskModal").addEventListener("click", function(e) {
+  if (e.target === this) closeTaskModal();
+});
 
 function loadMeetings(accountId) {
   dbg("loadMeetings → getRelatedRecords Accounts/" + accountId + "/Events", null, false);
@@ -1139,18 +1883,21 @@ document.addEventListener("keydown", function(e) {
 });
 
 // ── HOME VIEW ─────────────────────────────────────────────────
+var allHomeMeetings = [];
+var homeMeetingTimeFilter = "upcoming";
+var homeMeetingView = "list";
+var homeCalendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+var homeCalendarSelectedDate = new Date();
+
 function loadHomeView() {
-  var now = new Date();
   Promise.all([
     ZOHO.CRM.API.getAllRecords({ Entity: "Tasks", sort_order: "asc", sort_by: "Due_Date", per_page: 50, page: 1 }),
     ZOHO.CRM.API.getAllRecords({ Entity: "Events", sort_order: "asc", sort_by: "Start_DateTime", per_page: 50, page: 1 })
   ]).then(function(results) {
     var openTasks = (results[0].data || []).filter(function(t) { return t.Status !== "Completed"; });
-    var futureMeetings = (results[1].data || []).filter(function(e) {
-      return e.Start_DateTime && new Date(e.Start_DateTime) >= now;
-    });
+    allHomeMeetings = results[1].data || [];
     renderHomeTasks(openTasks);
-    renderHomeMeetings(futureMeetings);
+    renderHomeMeetingsView();
   }).catch(function(err) {
     dbg("loadHomeView ERROR", err, true);
     document.getElementById("homeTaskList").innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div>שגיאה בטעינה</div></div>';
@@ -1171,39 +1918,149 @@ function renderHomeTasks(tasks) {
     var clientName = t.What_Id && t.What_Id.name ? t.What_Id.name : "";
     var clientId   = t.What_Id && t.What_Id.id   ? t.What_Id.id   : "";
     return '<div class="task-card">' +
-      '<div class="task-body">' +
-        '<div class="task-title">' + esc(t.Subject || "") + '</div>' +
-        '<div class="task-meta">' +
-          (priLabel ? '<span class="badge ' + priClass + '">' + esc(priLabel) + '</span>' : '') +
-          (t.Due_Date ? '<span class="due-date ' + (isOverdue(t.Due_Date) ? "overdue" : "") + '">' + fmtDate(t.Due_Date) + '</span>' : '') +
-        '</div>' +
-      '</div>' +
-      '<div class="task-side">' +
-        (clientId ? '<button class="ht-client" onclick="goToClient(\'' + esc(clientId) + '\')">' + esc(clientName) + '</button>' : '') +
-      '</div>' +
+      '<div class="task-title">' + esc(t.Subject || "") + '</div>' +
+      (priLabel ? '<span class="badge ' + priClass + '">' + esc(priLabel) + '</span>' : '') +
+      (t.Due_Date ? '<span class="due-date ' + (isOverdue(t.Due_Date) ? "overdue" : "") + '">' + fmtDate(t.Due_Date) + '</span>' : '') +
+      (clientId ? '<button class="ht-client" onclick="goToClient(\'' + esc(clientId) + '\')">' + esc(clientName) + '</button>' : '') +
     '</div>';
   }).join("");
 }
 
-function renderHomeMeetings(meetings) {
+function homeMeetingCardHtml(m) {
+  var title      = m.Event_Title || m.Subject || "פגישה";
+  var clientName = m.What_Id && m.What_Id.name ? m.What_Id.name : "";
+  var clientId   = m.What_Id && m.What_Id.id   ? m.What_Id.id   : "";
+  var joinUrl    = m.$meeting_details && m.$meeting_details.joinmeeting_url;
+  return '<div class="action-card">' +
+    '<div class="action-header">' +
+      '<div class="action-title">' + esc(title) + '</div>' +
+      (m.Start_DateTime ? '<span class="meeting-date upcoming">' + fmtDateTime(m.Start_DateTime) + '</span>' : '') +
+    '</div>' +
+    '<div class="action-footer">' +
+      (joinUrl ? '<a class="crm-link" href="' + esc(joinUrl) + '" target="_blank">🟦 הצטרף ל-Teams ↗</a>' : '') +
+      (clientId ? '<button class="ht-client" onclick="goToClient(\'' + esc(clientId) + '\')">' + esc(clientName) + '</button>' : '') +
+    '</div>' +
+  '</div>';
+}
+
+function renderHomeMeetingsView() {
+  document.getElementById("homeMeetingTimeFilters").classList.toggle("hidden", homeMeetingView === "calendar");
+  document.getElementById("homeMeetingList").classList.toggle("hidden", homeMeetingView !== "list");
+  document.getElementById("homeMeetingCalendar").classList.toggle("hidden", homeMeetingView !== "calendar");
+  if (homeMeetingView === "calendar") renderHomeMeetingsCalendar();
+  else renderHomeMeetingsList();
+}
+
+function renderHomeMeetingsList() {
+  var now = new Date();
+  var meetings = allHomeMeetings.filter(function(m) {
+    if (!m.Start_DateTime) return false;
+    var d = new Date(m.Start_DateTime);
+    return homeMeetingTimeFilter === "upcoming" ? d >= now : d < now;
+  }).sort(function(a, b) {
+    var da = new Date(a.Start_DateTime), db = new Date(b.Start_DateTime);
+    return homeMeetingTimeFilter === "upcoming" ? da - db : db - da;
+  });
+
   document.getElementById("homeMeetingCount").textContent = meetings.length;
   var el = document.getElementById("homeMeetingList");
   if (!meetings.length) {
-    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div><div>אין פגישות עתידיות</div></div>';
+    var msg = homeMeetingTimeFilter === "upcoming" ? "אין פגישות עתידיות" : "אין פגישות קודמות";
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div><div>' + msg + '</div></div>';
     return;
   }
-  el.innerHTML = meetings.map(function(m) {
-    var title      = m.Event_Title || m.Subject || "פגישה";
-    var clientName = m.What_Id && m.What_Id.name ? m.What_Id.name : "";
-    var clientId   = m.What_Id && m.What_Id.id   ? m.What_Id.id   : "";
-    return '<div class="action-card">' +
-      '<div class="action-header"><div class="action-title">' + esc(title) + '</div></div>' +
-      (m.Start_DateTime ? '<div class="meeting-date upcoming">' + fmtDateTime(m.Start_DateTime) + '</div>' : '') +
-      '<div class="action-footer">' +
-        (clientId ? '<button class="ht-client" onclick="goToClient(\'' + esc(clientId) + '\')">' + esc(clientName) + '</button>' : '') +
-      '</div>' +
+  el.innerHTML = meetings.map(homeMeetingCardHtml).join("");
+}
+
+document.getElementById("homeMeetingTimeFilters").addEventListener("click", function(e) {
+  var btn = e.target.closest(".filter-btn");
+  if (!btn) return;
+  document.querySelectorAll("#homeMeetingTimeFilters .filter-btn").forEach(function(b) { b.className = "filter-btn"; });
+  btn.classList.add("active-a");
+  homeMeetingTimeFilter = btn.dataset.tf;
+  document.getElementById("homeMeetingPanelTitle").textContent = homeMeetingTimeFilter === "upcoming" ? "פגישות עתידיות" : "פגישות קודמות";
+  renderHomeMeetingsList();
+});
+
+document.getElementById("homeMeetingViewToggle").addEventListener("click", function(e) {
+  var btn = e.target.closest(".view-toggle-btn");
+  if (!btn) return;
+  document.querySelectorAll("#homeMeetingViewToggle .view-toggle-btn").forEach(function(b) { b.classList.remove("active"); });
+  btn.classList.add("active");
+  homeMeetingView = btn.dataset.view;
+  renderHomeMeetingsView();
+});
+
+function isSameDate(a, b) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
+function renderHomeMeetingsCalendar() {
+  var year = homeCalendarMonth.getFullYear();
+  var month = homeCalendarMonth.getMonth();
+  var firstDay = new Date(year, month, 1);
+  var daysInMonth = new Date(year, month + 1, 0).getDate();
+  var startOffset = firstDay.getDay();
+  var today = new Date();
+  var monthNames = ["ינואר","פברואר","מרץ","אפריל","מאי","יוני","יולי","אוגוסט","ספטמבר","אוקטובר","נובמבר","דצמבר"];
+  var weekdayNames = ["א׳","ב׳","ג׳","ד׳","ה׳","ו׳","ש׳"];
+
+  var meetingsByDay = {};
+  allHomeMeetings.forEach(function(m) {
+    if (!m.Start_DateTime) return;
+    var d = new Date(m.Start_DateTime);
+    if (d.getFullYear() === year && d.getMonth() === month) {
+      var day = d.getDate();
+      (meetingsByDay[day] = meetingsByDay[day] || []).push(m);
+    }
+  });
+
+  var cells = "";
+  for (var i = 0; i < startOffset; i++) cells += '<div class="cal-day empty"></div>';
+  for (var day = 1; day <= daysInMonth; day++) {
+    var cellDate = new Date(year, month, day);
+    var isToday = isSameDate(cellDate, today);
+    var isSelected = isSameDate(cellDate, homeCalendarSelectedDate);
+    var hasMeetings = !!meetingsByDay[day];
+    cells += '<div class="cal-day' + (isToday ? " today" : "") + (isSelected ? " selected" : "") + '" data-day="' + day + '">' +
+      day + (hasMeetings ? '<div class="cal-day-dot"></div>' : '') +
+      '</div>';
+  }
+
+  var agendaMeetings = (meetingsByDay[homeCalendarSelectedDate.getMonth() === month && homeCalendarSelectedDate.getFullYear() === year ? homeCalendarSelectedDate.getDate() : -1] || []);
+  var agendaHtml = agendaMeetings.length
+    ? agendaMeetings.sort(function(a, b) { return new Date(a.Start_DateTime) - new Date(b.Start_DateTime); }).map(homeMeetingCardHtml).join("")
+    : '<div class="cal-agenda-empty">אין פגישות בתאריך זה</div>';
+
+  document.getElementById("homeMeetingCalendar").innerHTML =
+    '<div class="cal-header">' +
+      '<button class="cal-nav-btn" id="calPrevBtn">‹</button>' +
+      '<div class="cal-title">' + monthNames[month] + " " + year + '</div>' +
+      '<button class="cal-nav-btn" id="calNextBtn">›</button>' +
+    '</div>' +
+    '<div class="cal-grid">' +
+      weekdayNames.map(function(w) { return '<div class="cal-weekday">' + w + '</div>'; }).join("") +
+      cells +
+    '</div>' +
+    '<div class="cal-agenda">' +
+      '<div class="cal-agenda-title">' + fmtDate(homeCalendarSelectedDate.toISOString()) + '</div>' +
+      agendaHtml +
     '</div>';
-  }).join("");
+
+  document.getElementById("calPrevBtn").onclick = function() {
+    homeCalendarMonth = new Date(year, month - 1, 1);
+    renderHomeMeetingsCalendar();
+  };
+  document.getElementById("calNextBtn").onclick = function() {
+    homeCalendarMonth = new Date(year, month + 1, 1);
+    renderHomeMeetingsCalendar();
+  };
+  document.getElementById("homeMeetingCalendar").querySelectorAll(".cal-day[data-day]").forEach(function(cell) {
+    cell.addEventListener("click", function() {
+      homeCalendarSelectedDate = new Date(year, month, Number(cell.dataset.day));
+      renderHomeMeetingsCalendar();
+    });
+  });
 }
 
 function goToClient(accountId) {
