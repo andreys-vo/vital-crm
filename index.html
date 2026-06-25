@@ -2,6 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>VITAL OP לוח בקרה</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
@@ -16,23 +17,26 @@
     --gray-500:#6B7280; --gray-700:#374151; --gray-900:#111827;
     --white:#FFFFFF; --shadow:0 1px 4px rgba(0,0,0,.10); --radius:8px;
   }
-  body {
+  html, body {
     font-family: "Segoe UI", Arial, "Arial Hebrew", "David", sans-serif;
     background: var(--gray-50);
     color: var(--gray-900);
     font-size: 13.5px;
     min-height: 100vh;
     direction: rtl;
+    max-width: 100vw;
+    overflow-x: hidden;
   }
 
   /* HEADER */
   header {
     background: var(--navy);
-    padding: 0 20px;
-    height: 52px;
+    padding: 8px 20px;
+    min-height: 52px;
     display: flex;
     align-items: center;
-    gap: 16px;
+    flex-wrap: wrap;
+    gap: 10px 16px;
     position: sticky;
     top: 0;
     z-index: 100;
@@ -41,7 +45,7 @@
   .logo { font-size: 15px; font-weight: 700; color: #fff; letter-spacing: .04em; }
   .logo span { color: #5BB3FF; }
   .header-sep { width: 1px; height: 24px; background: rgba(255,255,255,.15); }
-  .client-wrap { display: flex; align-items: center; gap: 8px; flex: 1; }
+  .client-wrap { display: flex; align-items: center; gap: 8px; flex: 1; flex-wrap: wrap; min-width: 0; }
   .client-label { color: rgba(255,255,255,.55); font-size: 11.5px; white-space: nowrap; }
   #clientSelect {
     appearance: none;
@@ -53,7 +57,9 @@
     font-weight: 500;
     padding: 5px 12px;
     cursor: pointer;
-    min-width: 240px;
+    flex: 1 1 200px;
+    min-width: 0;
+    max-width: 100%;
     font-family: inherit;
   }
   #clientSelect:focus { outline: none; border-color: #5BB3FF; }
@@ -106,16 +112,16 @@
   .participant-chip-remove:hover { background: var(--blue); color: #fff; }
 
   /* MAIN */
-  main { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; padding: 16px 20px 24px; }
+  main { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; padding: 16px 20px 24px; }
 
   /* PANEL */
   .panel { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); display: flex; flex-direction: column; height: 460px; }
-  .panel-head { display: flex; align-items: center; gap: 8px; padding: 14px 16px 10px; border-bottom: 1px solid var(--gray-100); }
+  .panel-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 14px 16px 10px; border-bottom: 1px solid var(--gray-100); }
   .panel-icon { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
   .icon-tasks   { background: var(--blue-lt); }
   .icon-notes   { background: var(--teal-lt); }
   .icon-actions { background: var(--amber-lt); }
-  .panel-title { font-size: 13.5px; font-weight: 700; color: var(--gray-900); flex: 1; }
+  .panel-title { font-size: 13.5px; font-weight: 700; color: var(--gray-900); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .panel-count { background: var(--gray-100); color: var(--gray-500); border-radius: 20px; padding: 1px 8px; font-size: 11px; font-weight: 600; }
 
   /* VIEW TOGGLE */
@@ -204,13 +210,16 @@
 
   /* RESPONSIVE */
   @media (max-width: 768px) {
-    main { grid-template-columns: 1fr; }
-    header { flex-wrap: wrap; height: auto; padding: 10px 16px; gap: 8px; }
+    header { padding: 8px 16px; }
     .header-sep { display: none; }
-    #clientSelect { min-width: 0; flex: 1; }
     .header-date { width: 100%; margin-right: 0; font-size: 11px; }
     .subheader { flex-direction: column; align-items: flex-start; gap: 8px; }
     .stat-pills { flex-wrap: wrap; }
+    .contacts-bar { padding: 8px 16px; }
+    .panel-head { padding: 12px 14px 8px; }
+    .panel-title { flex-basis: 100%; order: -1; white-space: normal; }
+    .view-toggle-btn { padding: 3px 6px; font-size: 10px; }
+    .add-meeting-btn { font-size: 10.5px; padding: 3px 8px; }
   }
 
   /* DONE BUTTON */
@@ -240,6 +249,8 @@
     background: rgba(0,0,0,.35);
     display: none; align-items: center; justify-content: center;
     z-index: 200;
+    overflow-y: auto;
+    padding: 24px 0;
   }
   .modal-backdrop.open { display: flex; }
   .modal {
@@ -248,6 +259,9 @@
     box-shadow: 0 4px 24px rgba(0,0,0,.18);
     display: flex; flex-direction: column; gap: 12px;
     direction: rtl;
+    margin: auto;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
   }
   .modal-title { font-size: 15px; font-weight: 700; color: var(--gray-900); }
   .modal-subtitle { font-size: 12px; color: var(--gray-500); }
@@ -389,7 +403,7 @@
   .filter-bar-sub { background: var(--gray-50); border-top: none; padding-top: 4px; }
 
   /* HOME VIEW */
-  #homeView { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px 20px 24px; }
+  #homeView { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; padding: 16px 20px 24px; }
   #homeView.hidden { display: none; }
   #mainPanels.hidden { display: none; }
   #contactsBar.hidden { display: none; }
@@ -399,7 +413,6 @@
     font-family: inherit; cursor: pointer; white-space: nowrap;
   }
   .ht-client:hover { background: var(--blue); color: #fff; }
-  @media (max-width: 768px) { #homeView { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
