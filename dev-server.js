@@ -19,8 +19,8 @@ const MIME = {
 };
 
 const options = {
-  key: fs.readFileSync(path.join(ROOT, '..', 'key.pem')),
-  cert: fs.readFileSync(path.join(ROOT, '..', 'cert.pem')),
+  key: fs.readFileSync(path.join(ROOT, 'key.pem')),
+  cert: fs.readFileSync(path.join(ROOT, 'cert.pem')),
 };
 
 https.createServer(options, (req, res) => {
