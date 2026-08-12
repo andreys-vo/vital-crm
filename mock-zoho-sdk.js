@@ -259,6 +259,15 @@
       for (var i = 0; i < list.length; i++) { if (list[i].id === raw.id) { idx = i; break; } }
       if (idx === -1) return { code: "RECORD_NOT_FOUND", details: { id: raw.id }, message: "no record with that id", status: "error" };
       list[idx] = Object.assign({}, list[idx], raw, { Modified_Time: nowIso() });
+      if (entity === "Events") {
+        if (list[idx].Meeting_Venue__s === "Online") {
+          if (!list[idx].$meeting_details) {
+            list[idx].$meeting_details = { joinmeeting_url: "https://teams.microsoft.com/l/meetup-join/mock-" + list[idx].id };
+          }
+        } else {
+          delete list[idx].$meeting_details;
+        }
+      }
       return { code: "SUCCESS", details: { id: raw.id, Modified_Time: list[idx].Modified_Time }, message: "record updated", status: "success" };
     });
     saveDb(db);

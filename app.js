@@ -850,20 +850,46 @@ const heLocale = {
   firstDayOfWeek: 0
 };
 
+const DURATION_PRESETS_MIN = [15, 30, 45, 60, 90, 120, 180, 240];
+
+function applyDurationToEnd() {
+  const durSel = document.getElementById("meetingDuration");
+  if (durSel.value === "custom") return;
+  const startDate = fpStart.selectedDates[0];
+  if (!startDate) return;
+  const end = new Date(startDate.getTime() + Number(durSel.value) * 60000);
+  fpEnd.setDate(end, false);
+}
+
+function syncDurationFromDates() {
+  const durSel = document.getElementById("meetingDuration");
+  const customOpt = document.getElementById("meetingDurationCustomOpt");
+  const startDate = fpStart.selectedDates[0];
+  const endDate = fpEnd.selectedDates[0];
+  if (!startDate || !endDate) { customOpt.hidden = true; return; }
+  const diffMin = Math.round((endDate.getTime() - startDate.getTime()) / 60000);
+  if (DURATION_PRESETS_MIN.indexOf(diffMin) !== -1) {
+    customOpt.hidden = true;
+    durSel.value = String(diffMin);
+  } else {
+    customOpt.hidden = false;
+    durSel.value = "custom";
+  }
+}
+
 function initFlatpickr() {
   if (fpStart) return;
   const cfg = { enableTime: true, time_24hr: true, dateFormat: "Y-m-d H:i",
                 locale: heLocale, disableMobile: true, appendTo: document.body };
   fpStart = flatpickr("#meetingStart", Object.assign({}, cfg, {
     onChange: function(dates) {
-      if (dates[0] && !fpEnd.selectedDates[0]) {
-        const end = new Date(dates[0]);
-        end.setHours(end.getHours() + 1);
-        fpEnd.setDate(end, false);
-      }
+      if (dates[0]) applyDurationToEnd();
     }
   }));
-  fpEnd = flatpickr("#meetingEnd", cfg);
+  fpEnd = flatpickr("#meetingEnd", Object.assign({}, cfg, {
+    onChange: function() { syncDurationFromDates(); }
+  }));
+  document.getElementById("meetingDuration").addEventListener("change", applyDurationToEnd);
 }
 
 function initTaskFlatpickr() {
@@ -919,6 +945,12 @@ function openMeetingModal(meetingId) {
   document.getElementById("meetingSubject").value = meeting ? (meeting.Event_Title || meeting.Subject || "") : "";
   fpStart.setDate(meeting ? (meeting.Start_DateTime || meeting.Due_Date || "") : "", false);
   fpEnd.setDate(meeting ? (meeting.End_DateTime || "") : "", false);
+  if (meeting && meeting.Start_DateTime && meeting.End_DateTime) {
+    syncDurationFromDates();
+  } else {
+    document.getElementById("meetingDurationCustomOpt").hidden = true;
+    document.getElementById("meetingDuration").value = "60";
+  }
   document.getElementById("meetingDesc").value = meeting ? (meeting.Description || "") : "";
   document.getElementById("meetingOnlineTeams").checked = !!(meeting && meeting.Meeting_Venue__s === "Online");
   if (meeting) {
@@ -945,6 +977,8 @@ function closeMeetingModal() {
   document.getElementById("meetingParticipantInput").value = "";
   if (fpStart) fpStart.clear();
   if (fpEnd)   fpEnd.clear();
+  document.getElementById("meetingDurationCustomOpt").hidden = true;
+  document.getElementById("meetingDuration").value = "60";
 }
 
 function renderMeetingParticipantChips() {
@@ -1030,6 +1064,9 @@ function saveMeeting() {
   if (document.getElementById("meetingOnlineTeams").checked) {
     apiData.Meeting_Venue__s = "Online";
     apiData.Meeting_Provider__s = "Microsoft Teams";
+  } else {
+    apiData.Meeting_Venue__s = "Offline";
+    apiData.Meeting_Provider__s = null;
   }
 
   const newEmailParticipants = meetingParticipantEmails.map(function(email) { return { type: "email", participant: email }; });

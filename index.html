@@ -156,6 +156,20 @@
         <input type="text" id="meetingStart" placeholder="בחר תאריך ושעה..." readonly>
       </div>
       <div class="form-group">
+        <label for="meetingDuration">משך</label>
+        <select id="meetingDuration">
+          <option value="15">15 דקות</option>
+          <option value="30">30 דקות</option>
+          <option value="45">45 דקות</option>
+          <option value="60" selected>שעה</option>
+          <option value="90">שעה וחצי</option>
+          <option value="120">שעתיים</option>
+          <option value="180">3 שעות</option>
+          <option value="240">4 שעות</option>
+          <option value="custom" id="meetingDurationCustomOpt" hidden>מותאם אישית</option>
+        </select>
+      </div>
+      <div class="form-group">
         <label for="meetingEnd">סיום</label>
         <input type="text" id="meetingEnd" placeholder="בחר תאריך ושעה..." readonly>
       </div>
