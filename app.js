@@ -924,7 +924,7 @@ function openMeetingModal(meetingId) {
   if (meeting) {
     meetingParticipantEmails = (meeting.Participants || []).filter(function(p) { return p.type === "email"; }).map(function(p) { return p.participant; });
   } else {
-    meetingParticipantEmails = allContacts.filter(function(c) { return c.Email; }).map(function(c) { return c.Email; });
+    meetingParticipantEmails = [];
   }
   document.getElementById("meetingParticipantInput").value = "";
   renderMeetingParticipantChips();
