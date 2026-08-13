@@ -952,7 +952,14 @@ function openMeetingModal(meetingId) {
     document.getElementById("meetingDuration").value = "60";
   }
   document.getElementById("meetingDesc").value = meeting ? (meeting.Description || "") : "";
-  document.getElementById("meetingOnlineTeams").checked = !!(meeting && meeting.Meeting_Venue__s === "Online");
+  // Detect an existing online meeting robustly: reads return the localized
+  // picklist label (e.g. "מחוברים"), not "Online", so match on the provisioned
+  // Teams details / provider instead of the venue label alone.
+  document.getElementById("meetingOnlineTeams").checked = !!(meeting && (
+    (meeting.$meeting_details && meeting.$meeting_details.joinmeeting_url) ||
+    meeting.Meeting_Provider__s ||
+    meeting.Meeting_Venue__s === "Online"
+  ));
   if (meeting) {
     meetingParticipantEmails = (meeting.Participants || []).filter(function(p) { return p.type === "email"; }).map(function(p) { return p.participant; });
   } else {
@@ -1063,7 +1070,11 @@ function saveMeeting() {
 
   if (document.getElementById("meetingOnlineTeams").checked) {
     apiData.Meeting_Venue__s = "Online";
-    apiData.Meeting_Provider__s = "Microsoft Teams";
+    // Must be the picklist's actual API value, not its display label. This org's
+    // Meeting_Provider__s only accepts "MicrosoftTeamsMeeting"; sending the label
+    // "Microsoft Teams" makes Zoho drop the provider, so no Teams meeting is
+    // provisioned (empty $meeting_details / no join link).
+    apiData.Meeting_Provider__s = "MicrosoftTeamsMeeting";
   } else {
     apiData.Meeting_Venue__s = "Offline";
     apiData.Meeting_Provider__s = null;
