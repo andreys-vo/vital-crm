@@ -948,7 +948,7 @@ function saveMeeting() {
   // "MicrosoftTeamsMeeting" is the confirmed actual_value for this org's Teams
   // provider, so it should be the correct tool_name by the same naming pattern.
   if (document.getElementById("meetingOnlineTeams").checked) {
-    apiData.$meeting_details = { tool_name: "MicrosoftTeamsMeeting" };
+    apiData.$meeting_details = { tool_name: 'MicrosoftTeamsMeeting' };
   } else {
     apiData.Meeting_Venue__s = "Client location";
   }
