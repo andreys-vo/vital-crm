@@ -950,7 +950,7 @@ function saveMeeting() {
   //   Meeting_Venue__s: "In-office" | "Client location" | "Online"
   if (document.getElementById("meetingOnlineTeams").checked) {
     apiData.Meeting_Venue__s = "Online";
-    apiData.Meeting_Provider__s = "Microsoft_Teams";
+    apiData.Meeting_Provider__s = "MicrosoftTeamsMeeting";
   } else {
     apiData.Meeting_Venue__s = "Client location";
     apiData.Meeting_Provider__s = null;
@@ -1041,7 +1041,7 @@ function debugTraceMeetingCreation() {
       Description: "Automated debug trace — safe to delete",
       $send_notification: false,
       Meeting_Venue__s: "Online",
-      Meeting_Provider__s: "Microsoft Teams",
+      Meeting_Provider__s: "MicrosoftTeamsMeeting",
       What_Id: currentAccountId,
       $se_module: "Accounts"
     };
