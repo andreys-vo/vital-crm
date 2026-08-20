@@ -1014,37 +1014,48 @@ function traceMeetingRecord(id, label) {
 }
 
 // Standalone, isolated test: creates its own meeting (bypassing the modal's date
-// pickers/participants entirely) and traces it, to rule out UI-state bugs when
-// diagnosing why a Teams meeting isn't provisioning.
+// pickers entirely) and traces it, to rule out UI-state bugs when diagnosing why
+// a Teams meeting isn't provisioning. Includes the current user as a participant,
+// since the last trace (zero participants) came back with Meeting_Venue__s
+// silently reverted to "Client location" and no $meeting_details/UUID — testing
+// whether provisioning requires at least one attendee.
 function debugTraceMeetingCreation() {
   if (!currentAccountId) { dbg("⚠ אין לקוח נבחר", null, true); return; }
-  const start = new Date(Date.now() + 60 * 60 * 1000);
-  const end = new Date(start.getTime() + 30 * 60 * 1000);
-  const pad = function(n) { return String(n).padStart(2, "0"); };
-  const fmt = function(d) {
-    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
-  };
-  const apiData = {
-    Event_Title: "DEBUG-TRACE-" + Date.now(),
-    Start_DateTime: toZohoDT(fmt(start)),
-    End_DateTime: toZohoDT(fmt(end)),
-    Description: "Automated debug trace — safe to delete",
-    $send_notification: false,
-    Meeting_Venue__s: "Online",
-    Meeting_Provider__s: "MicrosoftTeamsMeeting",
-    What_Id: currentAccountId,
-    $se_module: "Accounts"
-  };
-  dbg("TRACE ▶ outgoing insertRecord payload", apiData);
 
-  ZOHO.CRM.API.insertRecord({ Entity: "Events", APIData: apiData })
-    .then(function(resp) {
-      dbg("TRACE ✓ insertRecord raw response", resp);
-      const result = (resp.data || [])[0];
-      if (!result || result.status !== "success") { dbg("TRACE ✗ insert did not report success", result, true); return; }
-      traceMeetingRecord(result.details.id, "TRACE");
-    })
-    .catch(function(e) { dbg("TRACE ✗ insertRecord failed", e, true); });
+  ZOHO.CRM.CONFIG.getCurrentUser().then(function(userResp) {
+    const me = userResp && userResp.users && userResp.users[0];
+    const meEmail = me && me.email;
+    dbg("TRACE ▶ current user", me);
+
+    const start = new Date(Date.now() + 60 * 60 * 1000);
+    const end = new Date(start.getTime() + 30 * 60 * 1000);
+    const pad = function(n) { return String(n).padStart(2, "0"); };
+    const fmt = function(d) {
+      return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+    };
+    const apiData = {
+      Event_Title: "DEBUG-TRACE-" + Date.now(),
+      Start_DateTime: toZohoDT(fmt(start)),
+      End_DateTime: toZohoDT(fmt(end)),
+      Description: "Automated debug trace — safe to delete",
+      $send_notification: false,
+      Meeting_Venue__s: "Online",
+      Meeting_Provider__s: "MicrosoftTeamsMeeting",
+      What_Id: currentAccountId,
+      $se_module: "Accounts"
+    };
+    if (meEmail) apiData.Participants = [{ type: "email", participant: meEmail }];
+    dbg("TRACE ▶ outgoing insertRecord payload", apiData);
+
+    ZOHO.CRM.API.insertRecord({ Entity: "Events", APIData: apiData })
+      .then(function(resp) {
+        dbg("TRACE ✓ insertRecord raw response", resp);
+        const result = (resp.data || [])[0];
+        if (!result || result.status !== "success") { dbg("TRACE ✗ insert did not report success", result, true); return; }
+        traceMeetingRecord(result.details.id, "TRACE");
+      })
+      .catch(function(e) { dbg("TRACE ✗ insertRecord failed", e, true); });
+  }).catch(function(e) { dbg("TRACE ✗ getCurrentUser failed", e, true); });
 }
 
 // ── TASK MODAL ────────────────────────────────────────────────

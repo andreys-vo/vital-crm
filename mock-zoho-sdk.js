@@ -354,6 +354,11 @@
     return delay({ fields: FIELD_SCHEMAS[args.Entity] || [] });
   }
 
+  // ── CONFIG ────────────────────────────────────────────────────
+  function getCurrentUser() {
+    return delay({ users: [{ id: "owner_1", full_name: "רועי כהן", email: "mock.user@example.com" }] });
+  }
+
   // ── embeddedApp lifecycle ────────────────────────────────────
   var pageLoadHandlers = [];
 
@@ -380,7 +385,8 @@
         deleteRecord: deleteRecord,
         getRecord: getRecord
       },
-      META: { getFields: getFields }
+      META: { getFields: getFields },
+      CONFIG: { getCurrentUser: getCurrentUser }
     },
     __mock: {
       isMock: true,
