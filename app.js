@@ -20,45 +20,6 @@ function toggleDebug() {
   document.getElementById("debugPanel").classList.toggle("open");
 }
 
-function testMeetingAPIs() {
-  if (!currentAccountId) { dbg("⚠ אין לקוח נבחר", null, true); return; }
-  dbg("▶ currentAccountId", currentAccountId);
-
-  // Test 1: searchRecords criteria
-  dbg("TEST 1 → searchRecords Events (What_Id:equals)", "...");
-  ZOHO.CRM.API.searchRecords({
-    Entity: "Events",
-    Type: "criteria",
-    Query: "(What_Id:equals:" + currentAccountId + ")"
-  }).then(function(r) {
-    dbg("TEST 1 ✓ searchRecords Events", { count: (r.data||[]).length, status: r.status, firstRecord: (r.data||[])[0] || null });
-  }).catch(function(e) { dbg("TEST 1 ✗", e, true); });
-
-  // Test 2: getRelatedRecords "Events"
-  dbg("TEST 2 → getRelatedRecords RelatedList:Events", "...");
-  ZOHO.CRM.API.getRelatedRecords({ Entity:"Accounts", RecordID:currentAccountId, RelatedList:"Events", page:1, per_page:10 })
-    .then(function(r) { dbg("TEST 2 ✓ getRelatedRecords Events", { count:(r.data||[]).length, raw: r }); })
-    .catch(function(e) { dbg("TEST 2 ✗", e, true); });
-
-  // Test 3: getRelatedRecords "Meetings"
-  dbg("TEST 3 → getRelatedRecords RelatedList:Meetings", "...");
-  ZOHO.CRM.API.getRelatedRecords({ Entity:"Accounts", RecordID:currentAccountId, RelatedList:"Meetings", page:1, per_page:10 })
-    .then(function(r) { dbg("TEST 3 ✓ getRelatedRecords Meetings", { count:(r.data||[]).length, raw: r }); })
-    .catch(function(e) { dbg("TEST 3 ✗", e, true); });
-
-  // Test 4: getAllRecords on Events module
-  dbg("TEST 4 → getAllRecords Entity:Events", "...");
-  ZOHO.CRM.API.getAllRecords({ Entity:"Events", sort_order:"desc", sort_by:"Start_DateTime", per_page:5, page:1 })
-    .then(function(r) { dbg("TEST 4 ✓ getAllRecords Events", { count:(r.data||[]).length, firstRecord:(r.data||[])[0]||null }); })
-    .catch(function(e) { dbg("TEST 4 ✗", e, true); });
-
-  // Test 5: searchRecords with word search
-  dbg("TEST 5 → searchRecords Events Type:word", "...");
-  ZOHO.CRM.API.searchRecords({ Entity:"Events", Type:"word", Query:"a" })
-    .then(function(r) { dbg("TEST 5 ✓ searchRecords Events word:a", { count:(r.data||[]).length, raw: r }); })
-    .catch(function(e) { dbg("TEST 5 ✗", e, true); });
-}
-
 function isOnlineMeetingField(name) {
   name = (name || "").toLowerCase();
   return ["online", "meeting", "conferenc", "teams", "venue", "web_conf", "join", "remind"].some(function(k) {
@@ -104,47 +65,6 @@ function testOnlineMeetingFields() {
       dbg("TEST RAW ✓ raw Events records (filtered, see console for full record)", relevant);
     })
     .catch(function(e) { dbg("TEST RAW ✗", e, true); });
-}
-
-function testTaskFields() {
-  dbg("TEST TASK FIELDS → ZOHO.CRM.META.getFields Tasks", "...");
-  ZOHO.CRM.META.getFields({ Entity: "Tasks" })
-    .then(function(r) {
-      const all = (r.fields || []).map(function(f) {
-        return { api_name: f.api_name, label: f.field_label, data_type: f.data_type, pick_list_values: f.pick_list_values };
-      });
-      console.log("ALL Tasks fields", all);
-      const relevant = all.filter(function(f) {
-        return ["priority","status","subject","due_date","description"].indexOf(f.api_name.toLowerCase()) !== -1;
-      }).map(function(f) {
-        return {
-          api_name: f.api_name,
-          label: f.label,
-          data_type: f.data_type,
-          options: (f.pick_list_values || []).map(function(p) { return p.actual_value || p.display_value; })
-        };
-      });
-      dbg("TEST TASK FIELDS ✓ (filtered, see console for full list)", relevant);
-    })
-    .catch(function(e) { dbg("TEST TASK FIELDS ✗ getFields", e, true); });
-}
-
-function testAccountFields() {
-  dbg("TEST ACCOUNT FIELDS → ZOHO.CRM.META.getFields Accounts (full list in console)", "...");
-  ZOHO.CRM.META.getFields({ Entity: "Accounts" })
-    .then(function(r) {
-      const all = (r.fields || []).map(function(f) {
-        return {
-          api_name: f.api_name,
-          label: f.field_label,
-          data_type: f.data_type,
-          options: (f.pick_list_values || []).map(function(p) { return p.actual_value || p.display_value; })
-        };
-      });
-      console.log("ALL Accounts fields", all);
-      dbg("TEST ACCOUNT FIELDS ✓ — " + all.length + " fields logged to console (see DevTools console for full list with options)", null);
-    })
-    .catch(function(e) { dbg("TEST ACCOUNT FIELDS ✗ getFields", e, true); });
 }
 
 // ── UTILS ─────────────────────────────────────────────────────
