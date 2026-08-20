@@ -940,15 +940,11 @@ function saveMeeting() {
     apiData.Remind_At = buildReminderAt(start, Number(parts[0]), parts[1]);
   }
 
-  // IMPORTANT: Meeting_Venue__s/Meeting_Provider__s are NOT what triggers
-  // provisioning — they're display fields Zoho derives automatically once a
-  // meeting is actually provisioned. The real trigger (confirmed via a working
-  // Zoho support sample for Zoom) is the $meeting_details INPUT field with a
-  // tool_name, e.g. { "$meeting_details": { "tool_name": "ZoomMeeting" } }.
-  // "MicrosoftTeamsMeeting" is the confirmed actual_value for this org's Teams
-  // provider, so it should be the correct tool_name by the same naming pattern.
+  // Provisioning trigger — see README "Online meeting provisioning" section
+  // for how this was found. Meeting_Venue__s/Meeting_Provider__s do NOT
+  // trigger it; they're read-only display fields Zoho derives afterward.
   if (document.getElementById("meetingOnlineTeams").checked) {
-    apiData.$meeting_details = { tool_name: 'MicrosoftTeamsMeeting' };
+    apiData.$meeting_details = { tool_name: "MicrosoftTeamsMeeting" };
   } else {
     apiData.Meeting_Venue__s = "Client location";
   }

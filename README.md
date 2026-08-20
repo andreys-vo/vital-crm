@@ -73,7 +73,64 @@ behavior). Production (GitHub Pages, embedded in Zoho's iframe) always uses
 the real SDK regardless of this — the mock only ever activates when the page
 is opened directly, outside Zoho's iframe.
 
+## Online meeting provisioning
+
+Creating a meeting with the "פגישת Microsoft Teams מקוונת" checkbox actually
+provisions a real Microsoft Teams link (`$meeting_details.joinmeeting_url`) by
+sending, in `saveMeeting()`'s `apiData`:
+
+```js
+apiData.$meeting_details = { tool_name: "MicrosoftTeamsMeeting" };
+```
+
+This is the *only* thing that triggers provisioning. It was not obvious and
+took a long debugging session to find, so the reasoning is captured here in
+full:
+
+- `Events.Meeting_Venue__s` / `Meeting_Provider__s` **do not trigger
+  provisioning** at all, despite looking like the obvious fields (they're
+  the venue/provider picklists shown in Zoho's UI). Setting them via
+  `insertRecord`/`updateRecord` gets accepted, but a few seconds later Zoho
+  silently reverts `Meeting_Venue__s` to `"Client location"` and clears
+  `Meeting_Provider__s` to `null` — no error, no `$meeting_details`, no
+  `Online_Meeting_External_UUID__s`. They're read-only *display* fields that
+  Zoho derives automatically after a meeting is actually provisioned, not an
+  input that causes provisioning.
+- `ZOHO.CRM.META.getFields` reports `Meeting_Provider__s`'s only
+  `actual_value` as `"MicrosoftTeamsMeeting"` — this looks authoritative but
+  is a red herring for API writes. Zoho's own native meeting editor lists
+  `"MicrosoftTeamsMeeting"` and `"Microsoft Teams"` as two distinct provider
+  entries; selecting `"MicrosoftTeamsMeeting"` there throws "disabled for
+  your organization". Neither value provisions anything when sent via the
+  public REST API through `Meeting_Provider__s` — the field just isn't the
+  mechanism, regardless of which value you send.
+- Zoho's native meeting editor provisions the real link through internal,
+  session-cookie-authenticated endpoints (`crm.zoho.com/.../
+  EditCommonModule.do` and a `phonebridge.zoho.com/meetingbridge/...`
+  lookup) that aren't part of the public API and aren't reachable from a
+  widget or a Deluge function — there's no way to replicate that path
+  programmatically.
+- The actual mechanism was found in a Zoho community thread with a working
+  PHP sample: provisioning is triggered by sending `$meeting_details` (the
+  same field name that's read-only on *read* responses) as an *input* field
+  containing `{ "tool_name": "ZoomMeeting" }`. By that naming pattern,
+  `"MicrosoftTeamsMeeting"` — the value `getFields` reported as
+  `Meeting_Provider__s`'s `actual_value` — turned out to be the correct
+  `tool_name`, just in the wrong field. This is confirmed working in this
+  org.
+
+If this ever breaks again (e.g. a different provider is added, or Zoho
+changes behavior), use the "▶ Trace Meeting Creation" debug button — it
+creates an isolated test meeting and polls it at 0/3/6/10/15s, logging
+`Meeting_Venue__s`, `Meeting_Provider__s`, `Online_Meeting_External_UUID__s`,
+and `$meeting_details` at each step, so you can see exactly when/whether
+provisioning actually happened rather than guessing from the UI.
+
 ## Deploying
 
 Push to `main` and enable/refresh GitHub Pages — Zoho CRM will pick up the new
-`index.html` on next load (no separate build/package step).
+`index.html` on next load (no separate build/package step). The browser can
+cache the previous `app.js` though (especially inside Zoho's widget iframe) —
+if a change doesn't seem to take effect, fully close and reopen the CRM tab
+(a plain refresh doesn't always re-fetch an iframe's cached resources) before
+assuming the code itself is wrong.
