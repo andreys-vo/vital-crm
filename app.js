@@ -940,20 +940,17 @@ function saveMeeting() {
     apiData.Remind_At = buildReminderAt(start, Number(parts[0]), parts[1]);
   }
 
-  // IMPORTANT: Meeting_Provider__s = "MicrosoftTeamsMeeting" LOOKS like the
-  // correct picklist actual_value per ZOHO.CRM.META.getFields, but Zoho's own
-  // native meeting editor lists it as a SEPARATE, distinct provider entry from
-  // "Microsoft Teams" — and selecting it there throws "MicrosoftTeamsMeeting
-  // הושבת עבור הארגון שלך" (disabled for your organization). "Microsoft Teams"
-  // is the actually-connected provider for this org; use that, not the
-  // getFields actual_value.
-  //   Meeting_Venue__s: "In-office" | "Client location" | "Online"
+  // IMPORTANT: Meeting_Venue__s/Meeting_Provider__s are NOT what triggers
+  // provisioning — they're display fields Zoho derives automatically once a
+  // meeting is actually provisioned. The real trigger (confirmed via a working
+  // Zoho support sample for Zoom) is the $meeting_details INPUT field with a
+  // tool_name, e.g. { "$meeting_details": { "tool_name": "ZoomMeeting" } }.
+  // "MicrosoftTeamsMeeting" is the confirmed actual_value for this org's Teams
+  // provider, so it should be the correct tool_name by the same naming pattern.
   if (document.getElementById("meetingOnlineTeams").checked) {
-    apiData.Meeting_Venue__s = "Online";
-    apiData.Meeting_Provider__s = "MicrosoftTeamsMeeting";
+    apiData.$meeting_details = { tool_name: "MicrosoftTeamsMeeting" };
   } else {
     apiData.Meeting_Venue__s = "Client location";
-    apiData.Meeting_Provider__s = null;
   }
 
   const newEmailParticipants = meetingParticipantEmails.map(function(email) { return { type: "email", participant: email }; });
@@ -1016,10 +1013,10 @@ function traceMeetingRecord(id, label) {
 
 // Standalone, isolated test: creates its own meeting (bypassing the modal's date
 // pickers entirely) and traces it, to rule out UI-state bugs when diagnosing why
-// a Teams meeting isn't provisioning. Includes the current user as a participant,
-// since the last trace (zero participants) came back with Meeting_Venue__s
-// silently reverted to "Client location" and no $meeting_details/UUID — testing
-// whether provisioning requires at least one attendee.
+// a Teams meeting isn't provisioning. Uses the $meeting_details.tool_name input
+// field (confirmed via a working Zoho support sample for Zoom) instead of
+// Meeting_Venue__s/Meeting_Provider__s, which don't actually trigger
+// provisioning — they're derived display fields set after the fact.
 function debugTraceMeetingCreation() {
   if (!currentAccountId) { dbg("⚠ אין לקוח נבחר", null, true); return; }
 
@@ -1040,8 +1037,7 @@ function debugTraceMeetingCreation() {
       End_DateTime: toZohoDT(fmt(end)),
       Description: "Automated debug trace — safe to delete",
       $send_notification: false,
-      Meeting_Venue__s: "Online",
-      Meeting_Provider__s: "MicrosoftTeamsMeeting",
+      $meeting_details: { tool_name: "MicrosoftTeamsMeeting" },
       What_Id: currentAccountId,
       $se_module: "Accounts"
     };
