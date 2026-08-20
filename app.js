@@ -829,7 +829,7 @@ function openMeetingModal(meetingId) {
   document.getElementById("meetingOnlineTeams").checked = !!(meeting && (
     (meeting.$meeting_details && meeting.$meeting_details.joinmeeting_url) ||
     meeting.Meeting_Provider__s ||
-    meeting.Meeting_Venue__s === "Online"
+    meeting.Meeting_Venue__s === "מחוברים"
   ));
   if (meeting) {
     meetingParticipantEmails = (meeting.Participants || []).filter(function(p) { return p.type === "email"; }).map(function(p) { return p.participant; });
