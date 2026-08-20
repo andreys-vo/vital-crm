@@ -940,16 +940,17 @@ function saveMeeting() {
     apiData.Remind_At = buildReminderAt(start, Number(parts[0]), parts[1]);
   }
 
-  // IMPORTANT: these must be the picklist's actual write values (confirmed via
-  // ZOHO.CRM.META.getFields → pick_list_values[].actual_value), NOT the Hebrew
-  // display labels that reads echo back ("מחוברים" / "מיקום לקוח" / "Microsoft
-  // Teams"). Sending a display label here makes Zoho silently drop the field,
-  // so no Teams meeting gets provisioned. Confirmed actual_values:
-  //   Meeting_Venue__s:    "In-office" | "Client location" | "Online"
-  //   Meeting_Provider__s: "MicrosoftTeamsMeeting" (only option)
+  // IMPORTANT: Meeting_Provider__s = "MicrosoftTeamsMeeting" LOOKS like the
+  // correct picklist actual_value per ZOHO.CRM.META.getFields, but Zoho's own
+  // native meeting editor lists it as a SEPARATE, distinct provider entry from
+  // "Microsoft Teams" — and selecting it there throws "MicrosoftTeamsMeeting
+  // הושבת עבור הארגון שלך" (disabled for your organization). "Microsoft Teams"
+  // is the actually-connected provider for this org; use that, not the
+  // getFields actual_value.
+  //   Meeting_Venue__s: "In-office" | "Client location" | "Online"
   if (document.getElementById("meetingOnlineTeams").checked) {
     apiData.Meeting_Venue__s = "Online";
-    apiData.Meeting_Provider__s = "MicrosoftTeamsMeeting";
+    apiData.Meeting_Provider__s = "Microsoft Teams";
   } else {
     apiData.Meeting_Venue__s = "Client location";
     apiData.Meeting_Provider__s = null;
@@ -1040,7 +1041,7 @@ function debugTraceMeetingCreation() {
       Description: "Automated debug trace — safe to delete",
       $send_notification: false,
       Meeting_Venue__s: "Online",
-      Meeting_Provider__s: "MicrosoftTeamsMeeting",
+      Meeting_Provider__s: "Microsoft Teams",
       What_Id: currentAccountId,
       $se_module: "Accounts"
     };
