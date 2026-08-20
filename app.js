@@ -825,12 +825,13 @@ function openMeetingModal(meetingId) {
   document.getElementById("meetingDesc").value = meeting ? (meeting.Description || "") : "";
   // Detect an existing online meeting robustly: reads return the localized
   // picklist label (e.g. "מחוברים"), not "Online", so match on the provisioned
-  // Teams details / provider instead of the venue label alone.
-  document.getElementById("meetingOnlineTeams").checked = !!(meeting && (
+  // Teams details / provider instead of the venue label alone. New meetings
+  // (no existing record) default to checked, since Teams is the common case.
+  document.getElementById("meetingOnlineTeams").checked = meeting ? !!(
     (meeting.$meeting_details && meeting.$meeting_details.joinmeeting_url) ||
     meeting.Meeting_Provider__s ||
     meeting.Meeting_Venue__s === "מחוברים"
-  ));
+  ) : true;
   if (meeting) {
     meetingParticipantEmails = (meeting.Participants || []).filter(function(p) { return p.type === "email"; }).map(function(p) { return p.participant; });
   } else {
