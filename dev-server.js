@@ -25,6 +25,7 @@ const options = {
 
 https.createServer(options, (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Cache-Control', 'no-store');
   // Chrome's Private Network Access check: a public page (Zoho CRM) loading
   // a private/localhost resource must get explicit permission, both on the
   // preflight and the actual response.
