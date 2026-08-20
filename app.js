@@ -941,17 +941,15 @@ function saveMeeting() {
   }
 
   if (document.getElementById("meetingOnlineTeams").checked) {
-    apiData.Meeting_Venue__s = "Online";
+    apiData.Meeting_Venue__s = "מחוברים";
     // Must be the picklist's actual API value, not its display label. Confirmed via
     // ZOHO.CRM.META.getFields that this org's Meeting_Provider__s only accepts
-    // "MicrosoftTeamsMeeting" as a write value; sending the label "Microsoft Teams"
-    // makes Zoho drop the provider, so no Teams meeting is provisioned (empty
-    // $meeting_details / no join link).
-    apiData.Meeting_Provider__s = "MicrosoftTeamsMeeting";
+    // "Microsoft Teams" as a write value;
+    apiData.Meeting_Provider__s = "Microsoft Teams";
   } else {
     // "Offline" isn't a real picklist value in this org (only "In-office",
     // "Client location", "Online"); use the closest fit for a non-Teams meeting.
-    apiData.Meeting_Venue__s = "Client location";
+    apiData.Meeting_Venue__s = "מיקום לקוח";
     apiData.Meeting_Provider__s = null;
   }
 
