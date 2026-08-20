@@ -823,6 +823,14 @@ function openMeetingModal(meetingId) {
     document.getElementById("meetingDuration").value = "60";
   }
   document.getElementById("meetingDesc").value = meeting ? (meeting.Description || "") : "";
+  // Detect an existing online meeting robustly: reads return the localized
+  // picklist label (e.g. "מחוברים"), not "Online", so match on the provisioned
+  // Teams details / provider instead of the venue label alone.
+  document.getElementById("meetingOnlineTeams").checked = !!(meeting && (
+    (meeting.$meeting_details && meeting.$meeting_details.joinmeeting_url) ||
+    meeting.Meeting_Provider__s ||
+    meeting.Meeting_Venue__s === "Online"
+  ));
   if (meeting) {
     meetingParticipantEmails = (meeting.Participants || []).filter(function(p) { return p.type === "email"; }).map(function(p) { return p.participant; });
   } else {
@@ -931,13 +939,20 @@ function saveMeeting() {
     apiData.Remind_At = buildReminderAt(start, Number(parts[0]), parts[1]);
   }
 
-  apiData.Meeting_Venue__s = "Online";
-  // Must be the picklist's actual API value, not its display label. Confirmed via
-  // ZOHO.CRM.META.getFields that this org's Meeting_Provider__s only accepts
-  // "MicrosoftTeamsMeeting" as a write value; sending the label "Microsoft Teams"
-  // makes Zoho drop the provider, so no Teams meeting is provisioned (empty
-  // $meeting_details / no join link).
-  apiData.Meeting_Provider__s = "MicrosoftTeamsMeeting";
+  if (document.getElementById("meetingOnlineTeams").checked) {
+    apiData.Meeting_Venue__s = "Online";
+    // Must be the picklist's actual API value, not its display label. Confirmed via
+    // ZOHO.CRM.META.getFields that this org's Meeting_Provider__s only accepts
+    // "MicrosoftTeamsMeeting" as a write value; sending the label "Microsoft Teams"
+    // makes Zoho drop the provider, so no Teams meeting is provisioned (empty
+    // $meeting_details / no join link).
+    apiData.Meeting_Provider__s = "MicrosoftTeamsMeeting";
+  } else {
+    // "Offline" isn't a real picklist value in this org (only "In-office",
+    // "Client location", "Online"); use the closest fit for a non-Teams meeting.
+    apiData.Meeting_Venue__s = "Client location";
+    apiData.Meeting_Provider__s = null;
+  }
 
   const newEmailParticipants = meetingParticipantEmails.map(function(email) { return { type: "email", participant: email }; });
 
