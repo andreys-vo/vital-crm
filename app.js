@@ -940,16 +940,18 @@ function saveMeeting() {
     apiData.Remind_At = buildReminderAt(start, Number(parts[0]), parts[1]);
   }
 
+  // IMPORTANT: these must be the picklist's actual write values (confirmed via
+  // ZOHO.CRM.META.getFields → pick_list_values[].actual_value), NOT the Hebrew
+  // display labels that reads echo back ("מחוברים" / "מיקום לקוח" / "Microsoft
+  // Teams"). Sending a display label here makes Zoho silently drop the field,
+  // so no Teams meeting gets provisioned. Confirmed actual_values:
+  //   Meeting_Venue__s:    "In-office" | "Client location" | "Online"
+  //   Meeting_Provider__s: "MicrosoftTeamsMeeting" (only option)
   if (document.getElementById("meetingOnlineTeams").checked) {
-    apiData.Meeting_Venue__s = "מחוברים";
-    // Must be the picklist's actual API value, not its display label. Confirmed via
-    // ZOHO.CRM.META.getFields that this org's Meeting_Provider__s only accepts
-    // "Microsoft Teams" as a write value;
-    apiData.Meeting_Provider__s = "Microsoft Teams";
+    apiData.Meeting_Venue__s = "Online";
+    apiData.Meeting_Provider__s = "MicrosoftTeamsMeeting";
   } else {
-    // "Offline" isn't a real picklist value in this org (only "In-office",
-    // "Client location", "Online"); use the closest fit for a non-Teams meeting.
-    apiData.Meeting_Venue__s = "מיקום לקוח";
+    apiData.Meeting_Venue__s = "Client location";
     apiData.Meeting_Provider__s = null;
   }
 
@@ -961,22 +963,78 @@ function saveMeeting() {
     const otherParticipants = existingMeeting ? (existingMeeting.Participants || []).filter(function(p) { return p.type !== "email"; }) : [];
     apiData.Participants = otherParticipants.concat(newEmailParticipants);
     apiData.id = editingMeetingId;
+    dbg("SAVE ▶ updateRecord Events payload", apiData);
     apiCall = ZOHO.CRM.API.updateRecord({ Entity: "Events", APIData: apiData, Trigger: [] });
   } else {
     if (newEmailParticipants.length) apiData.Participants = newEmailParticipants;
     apiData.What_Id = currentAccountId;
     apiData.$se_module = "Accounts";
+    dbg("SAVE ▶ insertRecord Events payload", apiData);
     apiCall = ZOHO.CRM.API.insertRecord({ Entity: "Events", APIData: apiData });
   }
 
-  apiCall.then(function() {
+  apiCall.then(function(resp) {
+    dbg("SAVE ✓ raw API response", resp);
+    const result = (resp && resp.data && resp.data[0]) || null;
+    const savedId = editingMeetingId || (result && result.details && result.details.id);
+    if (savedId) traceMeetingRecord(savedId, "SAVE");
     closeMeetingModal();
     reloadActivities();
   }).catch(function(err) {
+    dbg("SAVE ✗ API call failed", err, true);
     saveBtn.disabled = false;
     saveBtn.textContent = "שמור";
     showError("לא ניתן לשמור פגישה — " + JSON.stringify(err));
   });
+}
+
+// Polls a meeting record over time and logs it in full, since $meeting_details
+// can be populated by Zoho asynchronously after the insert/update call resolves.
+function traceMeetingRecord(id, label) {
+  [0, 3000, 6000, 10000, 15000].forEach(function(delayMs) {
+    setTimeout(function() {
+      ZOHO.CRM.API.getRecord({ Entity: "Events", RecordID: id })
+        .then(function(r) {
+          const rec = (r.data || [])[0] || null;
+          dbg(label + " (+" + (delayMs / 1000) + "s) full record " + id, rec);
+        })
+        .catch(function(e) { dbg(label + " (+" + (delayMs / 1000) + "s) getRecord ✗", e, true); });
+    }, delayMs);
+  });
+}
+
+// Standalone, isolated test: creates its own meeting (bypassing the modal's date
+// pickers/participants entirely) and traces it, to rule out UI-state bugs when
+// diagnosing why a Teams meeting isn't provisioning.
+function debugTraceMeetingCreation() {
+  if (!currentAccountId) { dbg("⚠ אין לקוח נבחר", null, true); return; }
+  const start = new Date(Date.now() + 60 * 60 * 1000);
+  const end = new Date(start.getTime() + 30 * 60 * 1000);
+  const pad = function(n) { return String(n).padStart(2, "0"); };
+  const fmt = function(d) {
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+  };
+  const apiData = {
+    Event_Title: "DEBUG-TRACE-" + Date.now(),
+    Start_DateTime: toZohoDT(fmt(start)),
+    End_DateTime: toZohoDT(fmt(end)),
+    Description: "Automated debug trace — safe to delete",
+    $send_notification: false,
+    Meeting_Venue__s: "Online",
+    Meeting_Provider__s: "MicrosoftTeamsMeeting",
+    What_Id: currentAccountId,
+    $se_module: "Accounts"
+  };
+  dbg("TRACE ▶ outgoing insertRecord payload", apiData);
+
+  ZOHO.CRM.API.insertRecord({ Entity: "Events", APIData: apiData })
+    .then(function(resp) {
+      dbg("TRACE ✓ insertRecord raw response", resp);
+      const result = (resp.data || [])[0];
+      if (!result || result.status !== "success") { dbg("TRACE ✗ insert did not report success", result, true); return; }
+      traceMeetingRecord(result.details.id, "TRACE");
+    })
+    .catch(function(e) { dbg("TRACE ✗ insertRecord failed", e, true); });
 }
 
 // ── TASK MODAL ────────────────────────────────────────────────

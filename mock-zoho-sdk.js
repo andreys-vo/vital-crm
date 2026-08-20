@@ -274,6 +274,15 @@
     return delay({ data: results });
   }
 
+  function getRecord(args) {
+    var entity = args.Entity;
+    var id = args.RecordID;
+    var list = db[entity] || [];
+    var rec = null;
+    for (var i = 0; i < list.length; i++) { if (list[i].id === id) { rec = list[i]; break; } }
+    return delay({ data: rec ? [withResolvedLookups(entity, rec)] : [] });
+  }
+
   function deleteRecord(args) {
     var entity = args.Entity;
     var ids = Array.isArray(args.RecordID) ? args.RecordID : [args.RecordID];
@@ -368,7 +377,8 @@
         searchRecords: searchRecords,
         insertRecord: insertRecord,
         updateRecord: updateRecord,
-        deleteRecord: deleteRecord
+        deleteRecord: deleteRecord,
+        getRecord: getRecord
       },
       META: { getFields: getFields }
     },
