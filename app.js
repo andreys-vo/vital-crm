@@ -950,7 +950,7 @@ function saveMeeting() {
   //   Meeting_Venue__s: "In-office" | "Client location" | "Online"
   if (document.getElementById("meetingOnlineTeams").checked) {
     apiData.Meeting_Venue__s = "Online";
-    apiData.Meeting_Provider__s = "Microsoft Teams";
+    apiData.Meeting_Provider__s = "Microsoft_Teams";
   } else {
     apiData.Meeting_Venue__s = "Client location";
     apiData.Meeting_Provider__s = null;
