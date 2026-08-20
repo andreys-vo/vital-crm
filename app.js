@@ -988,15 +988,25 @@ function saveMeeting() {
   });
 }
 
-// Polls a meeting record over time and logs it in full, since $meeting_details
-// can be populated by Zoho asynchronously after the insert/update call resolves.
+// Polls a meeting record over time and logs it, since $meeting_details can be
+// populated by Zoho asynchronously after the insert/update call resolves. Logs
+// the Teams-relevant fields as a compact summary (the dbg panel truncates long
+// JSON at 1000 chars, which was cutting these fields off before they appeared)
+// plus the untruncated full record to the browser console.
 function traceMeetingRecord(id, label) {
   [0, 3000, 6000, 10000, 15000].forEach(function(delayMs) {
     setTimeout(function() {
       ZOHO.CRM.API.getRecord({ Entity: "Events", RecordID: id })
         .then(function(r) {
           const rec = (r.data || [])[0] || null;
-          dbg(label + " (+" + (delayMs / 1000) + "s) full record " + id, rec);
+          console.log(label + " (+" + (delayMs / 1000) + "s) full record " + id, rec);
+          dbg(label + " (+" + (delayMs / 1000) + "s) key fields " + id, rec && {
+            Meeting_Venue__s: rec.Meeting_Venue__s,
+            Meeting_Provider__s: rec.Meeting_Provider__s,
+            Online_Meeting_External_UUID__s: rec.Online_Meeting_External_UUID__s,
+            $meeting_details: rec.$meeting_details,
+            Venue: rec.Venue
+          });
         })
         .catch(function(e) { dbg(label + " (+" + (delayMs / 1000) + "s) getRecord ✗", e, true); });
     }, delayMs);
