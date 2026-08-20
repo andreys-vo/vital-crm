@@ -932,11 +932,12 @@ function saveMeeting() {
   }
 
   apiData.Meeting_Venue__s = "Online";
-  // Must be the picklist's actual API value, not its display label. This org's
-  // Meeting_Provider__s only accepts "Microsoft Teams"; sending the label
-  // "Microsoft Teams" makes Zoho drop the provider, so no Teams meeting is
-  // provisioned (empty $meeting_details / no join link).
-  apiData.Meeting_Provider__s = "Microsoft Teams";
+  // Must be the picklist's actual API value, not its display label. Confirmed via
+  // ZOHO.CRM.META.getFields that this org's Meeting_Provider__s only accepts
+  // "MicrosoftTeamsMeeting" as a write value; sending the label "Microsoft Teams"
+  // makes Zoho drop the provider, so no Teams meeting is provisioned (empty
+  // $meeting_details / no join link).
+  apiData.Meeting_Provider__s = "MicrosoftTeamsMeeting";
 
   const newEmailParticipants = meetingParticipantEmails.map(function(email) { return { type: "email", participant: email }; });
 
