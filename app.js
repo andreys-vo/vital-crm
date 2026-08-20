@@ -1076,7 +1076,9 @@ function saveMeeting() {
     // provisioned (empty $meeting_details / no join link).
     apiData.Meeting_Provider__s = "MicrosoftTeamsMeeting";
   } else {
-    apiData.Meeting_Venue__s = "Offline";
+    // "Offline" isn't a real picklist value in this org (only "In-office",
+    // "Client location", "Online"); use the closest fit for a non-Teams meeting.
+    apiData.Meeting_Venue__s = "Client location";
     apiData.Meeting_Provider__s = null;
   }
 
