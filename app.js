@@ -170,54 +170,6 @@ function isToday(iso) {
   return d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth() && d.getDate() === n.getDate();
 }
 
-// ── RECAP PARSING ─────────────────────────────────────────────
-const RECAP_ACTION_HEADER_RE = /^(action items?|suggested tasks?|assigned tasks?|next steps?|to-?dos?|follow-?ups?|פעולות(\s+לביצוע)?|משימות|מטלות)\s*:?\s*$/i;
-const RECAP_SUMMARY_HEADER_RE = /^(summary|meeting notes?|recap|overview|notes?|תקציר|סיכום|הערות)\s*:?\s*$/i;
-const RECAP_BULLET_RE = /^(?:[-*•▪◦]|\d+[.)])\s*(?:\[\s*[xX ]?\s*\]\s*)?/;
-const RECAP_MAX_ITEMS = 50;
-
-function extractRecapDueDate(text) {
-  const m = text.match(/\b(\d{4}-\d{2}-\d{2})\b/);
-  return m ? m[1] : "";
-}
-
-function parseRecapText(text) {
-  const lines = String(text || "").replace(/\r\n?/g, "\n").split("\n");
-  let mode = null, sawHeader = false;
-  let summaryLines = [], itemLines = [];
-
-  lines.forEach(function(line) {
-    const t = line.trim();
-    if (!t) return;
-    if (RECAP_ACTION_HEADER_RE.test(t)) { mode = "actions"; sawHeader = true; return; }
-    if (RECAP_SUMMARY_HEADER_RE.test(t)) { mode = "summary"; sawHeader = true; return; }
-    if (mode === "actions") {
-      if (itemLines.length < RECAP_MAX_ITEMS) itemLines.push(t.replace(RECAP_BULLET_RE, "").trim());
-    } else {
-      summaryLines.push(t);
-    }
-  });
-
-  if (!sawHeader) {
-    summaryLines = []; itemLines = [];
-    lines.forEach(function(line) {
-      const t = line.trim();
-      if (!t) return;
-      if (RECAP_BULLET_RE.test(t) && itemLines.length < RECAP_MAX_ITEMS) {
-        itemLines.push(t.replace(RECAP_BULLET_RE, "").trim());
-      } else {
-        summaryLines.push(t);
-      }
-    });
-  }
-
-  return {
-    summary: summaryLines.join("\n"),
-    items: itemLines.filter(Boolean).map(function(t) {
-      return { text: t, date: extractRecapDueDate(t) };
-    })
-  };
-}
 function showSpinner(id) {
   document.getElementById(id).innerHTML =
     '<div class="loading-state"><div class="spinner"></div><div>טוען...</div></div>';
@@ -663,10 +615,9 @@ function renderActivities() {
     const desc     = (a.Description || "").trim();
     const meetDate = a.Start_DateTime || "";
     const upcoming = meetDate && new Date(meetDate) >= now;
-    const needsRecap = meetDate && !upcoming && !done;
     const joinUrl  = a.$meeting_details && a.$meeting_details.joinmeeting_url;
     return `
-      <div class="action-card ${done?"done-action":""} ${needsRecap?"needs-recap":""}">
+      <div class="action-card ${done?"done-action":""}">
         <div class="action-header">
           <div class="action-title">${esc(a.Event_Title || a.Subject || "פגישה")}</div>
           ${meetDate ? `<span class="meeting-date ${upcoming?"upcoming":""}">📅 ${fmtDateTime(meetDate)}</span>` : ""}
@@ -676,8 +627,8 @@ function renderActivities() {
         ${desc ? `<div class="action-body">${esc(desc.substring(0,140))}${desc.length>140?"…":""}</div>` : ""}
         <div class="action-footer">
           ${a.Owner ? `<div class="owner-chip"><div class="avatar">${esc(a.Owner.name.charAt(0))}</div>${esc(a.Owner.name)}</div>` : ""}
-          <button class="edit-meeting-btn recap-btn" data-meeting-id="${esc(a.id)}" data-account-id="${esc(currentAccountId)}">📋 סיכום</button>
           <button class="edit-meeting-btn" data-meeting-id="${esc(a.id)}">ערוך</button>
+          <button class="edit-meeting-btn delete-meeting-btn" data-meeting-id="${esc(a.id)}">🗑 בטל פגישה</button>
           ${joinUrl ? `<a class="crm-link" href="${esc(joinUrl)}" target="_blank">🟦 הצטרף ל-Teams ↗</a>` : ""}
           ${a.id ? `<a class="crm-link" href="https://crm.zoho.com/crm/org919146768/tab/Events/${a.id}" target="_blank">פתח ↗</a>` : ""}
         </div>
@@ -1108,193 +1059,6 @@ function saveMeeting() {
   });
 }
 
-// ── RECAP MODAL ───────────────────────────────────────────────
-let recapMeetingId = null, recapAccountId = null, recapItems = [], recapItemSeq = 0, recapParseTimer = null;
-
-function findMeetingById(id) {
-  return allMeetings.find(function(m) { return m.id === id; }) ||
-         allHomeMeetings.find(function(m) { return m.id === id; });
-}
-
-function openRecapModal(meetingId, accountId) {
-  const meeting = findMeetingById(meetingId);
-  if (!meeting) { showError("לא נמצאה פגישה"); return; }
-
-  recapMeetingId = meetingId;
-  recapAccountId = accountId;
-
-  const title = meeting.Event_Title || meeting.Subject || "פגישה";
-  const dateStr = meeting.Start_DateTime ? fmtDateTime(meeting.Start_DateTime) : "";
-  document.getElementById("recapModalSubject").textContent = [title, dateStr].filter(Boolean).join(" · ");
-
-  document.getElementById("recapPasteInput").value = "";
-  document.getElementById("recapSummaryInput").value = "";
-  recapItems = [];
-  renderRecapItems();
-
-  const isPast = meeting.Start_DateTime && new Date(meeting.Start_DateTime) < new Date();
-  document.getElementById("recapMarkCompleted").checked = !!isPast && meeting.Status !== "Completed";
-
-  const saveBtn = document.getElementById("saveRecapBtn");
-  saveBtn.disabled = false;
-  saveBtn.textContent = "שמור ל-CRM";
-
-  document.getElementById("recapModal").classList.add("open");
-  setTimeout(function() { document.getElementById("recapPasteInput").focus(); }, 50);
-}
-
-function closeRecapModal() {
-  document.getElementById("recapModal").classList.remove("open");
-  recapMeetingId = null;
-  recapAccountId = null;
-  recapItems = [];
-  clearTimeout(recapParseTimer);
-}
-
-function renderRecapItems() {
-  const el = document.getElementById("recapItemsList");
-  if (!recapItems.length) {
-    el.innerHTML = '<div class="recap-items-empty">לא זוהו פעולות — ניתן להוסיף ידנית</div>';
-    return;
-  }
-  el.innerHTML = recapItems.map(function(item) {
-    return '<div class="recap-item-row" data-item-id="' + item.id + '">' +
-      '<input type="checkbox" class="recap-item-check" ' + (item.included ? "checked" : "") + '>' +
-      '<input type="text" class="recap-item-text" placeholder="תיאור הפעולה..." value="' + esc(item.text) + '">' +
-      '<input type="text" class="recap-item-date" placeholder="YYYY-MM-DD" value="' + esc(item.date || "") + '">' +
-      '<button type="button" class="recap-item-remove" title="הסר">✕</button>' +
-    '</div>';
-  }).join("");
-}
-
-function addRecapItemRow() {
-  recapItems.push({ id: "ri" + (++recapItemSeq), text: "", date: "", included: true });
-  renderRecapItems();
-  const rows = document.querySelectorAll("#recapItemsList .recap-item-text");
-  const last = rows[rows.length - 1];
-  if (last) last.focus();
-}
-
-document.getElementById("recapAddItemBtn").addEventListener("click", addRecapItemRow);
-
-document.getElementById("recapItemsList").addEventListener("click", function(e) {
-  const btn = e.target.closest(".recap-item-remove");
-  if (!btn) return;
-  const row = btn.closest(".recap-item-row");
-  const id = row && row.dataset.itemId;
-  recapItems = recapItems.filter(function(it) { return it.id !== id; });
-  renderRecapItems();
-});
-
-document.getElementById("recapItemsList").addEventListener("input", function(e) {
-  const row = e.target.closest(".recap-item-row");
-  if (!row) return;
-  const item = recapItems.find(function(it) { return it.id === row.dataset.itemId; });
-  if (!item) return;
-  if (e.target.classList.contains("recap-item-text")) item.text = e.target.value;
-  if (e.target.classList.contains("recap-item-date")) item.date = e.target.value;
-});
-
-document.getElementById("recapItemsList").addEventListener("change", function(e) {
-  const row = e.target.closest(".recap-item-row");
-  if (!row) return;
-  const item = recapItems.find(function(it) { return it.id === row.dataset.itemId; });
-  if (!item) return;
-  if (e.target.classList.contains("recap-item-check")) item.included = e.target.checked;
-});
-
-document.getElementById("recapPasteInput").addEventListener("input", function() {
-  const text = this.value;
-  clearTimeout(recapParseTimer);
-  recapParseTimer = setTimeout(function() {
-    const parsed = parseRecapText(text);
-    document.getElementById("recapSummaryInput").value = parsed.summary;
-    recapItems = parsed.items.map(function(it) {
-      return { id: "ri" + (++recapItemSeq), text: it.text, date: it.date, included: true };
-    });
-    renderRecapItems();
-  }, 400);
-});
-
-document.getElementById("recapModal").addEventListener("click", function(e) {
-  if (e.target === this) closeRecapModal();
-});
-
-function saveRecap() {
-  const summary = document.getElementById("recapSummaryInput").value.trim();
-  const includedItems = recapItems.filter(function(it) { return it.included && it.text.trim(); });
-
-  if (!summary && !includedItems.length) {
-    showError("אין מה לשמור — הוסף תקציר או פעולה אחת לפחות");
-    return;
-  }
-
-  const saveBtn = document.getElementById("saveRecapBtn");
-  saveBtn.disabled = true;
-  saveBtn.textContent = "שומר...";
-
-  const meeting = findMeetingById(recapMeetingId);
-  const meetingTitle = meeting ? (meeting.Event_Title || meeting.Subject || "פגישה") : "פגישה";
-  const meetingDate = meeting && meeting.Start_DateTime ? fmtDate(meeting.Start_DateTime) : fmtDate(new Date().toISOString());
-
-  const noteCall = summary
-    ? ZOHO.CRM.API.insertRecord({
-        Entity: "Notes",
-        APIData: {
-          Note_Title: "סיכום פגישה: " + meetingTitle + " – " + meetingDate,
-          Note_Content: summary,
-          Parent_Id: recapAccountId,
-          $se_module: "Accounts"
-        }
-      })
-    : Promise.resolve(null);
-
-  const tasksCall = includedItems.length
-    ? ZOHO.CRM.API.insertRecord({
-        Entity: "Tasks",
-        APIData: includedItems.map(function(it) {
-          const text = it.text.trim();
-          return {
-            Subject: text.length > 120 ? text.substring(0, 117) + "…" : text,
-            Description: text,
-            Due_Date: it.date || null,
-            Priority: "Normal",
-            Status: "Not Started",
-            What_Id: recapAccountId,
-            $se_module: "Accounts"
-          };
-        })
-      })
-    : Promise.resolve(null);
-
-  const markCompleted = document.getElementById("recapMarkCompleted").checked;
-  const completeCall = (markCompleted && recapMeetingId)
-    ? ZOHO.CRM.API.updateRecord({ Entity: "Events", APIData: { id: recapMeetingId, Status: "Completed" }, Trigger: [] })
-    : Promise.resolve(null);
-
-  Promise.all([noteCall, tasksCall, completeCall]).then(function(results) {
-    const tasksResp = results[1];
-    if (tasksResp && tasksResp.data) {
-      const failed = tasksResp.data.filter(function(r) { return r.code !== "SUCCESS"; });
-      if (failed.length) {
-        showError("חלק מהפעולות לא נשמרו כמשימות (" + failed.length + " מתוך " + tasksResp.data.length + ")");
-      }
-    }
-    const targetAccountId = recapAccountId;
-    closeRecapModal();
-    if (currentAccountId === targetAccountId) {
-      reloadNotes();
-      reloadTasks();
-      reloadActivities();
-    }
-    loadHomeView();
-  }).catch(function(err) {
-    saveBtn.disabled = false;
-    saveBtn.textContent = "שמור ל-CRM";
-    showError("לא ניתן לשמור סיכום — " + JSON.stringify(err));
-  });
-}
-
 // ── TASK MODAL ────────────────────────────────────────────────
 let editingTaskId = null;
 
@@ -1425,20 +1189,30 @@ function reloadActivities() {
 }
 
 document.getElementById("actionList").addEventListener("click", function(e) {
-  const recapBtn = e.target.closest(".recap-btn");
-  if (recapBtn && recapBtn.dataset.meetingId) {
-    openRecapModal(recapBtn.dataset.meetingId, recapBtn.dataset.accountId);
+  const deleteBtn = e.target.closest(".delete-meeting-btn");
+  if (deleteBtn && deleteBtn.dataset.meetingId) {
+    deleteMeeting(deleteBtn.dataset.meetingId);
     return;
   }
   const editBtn = e.target.closest(".edit-meeting-btn");
   if (editBtn && editBtn.dataset.meetingId) openMeetingModal(editBtn.dataset.meetingId);
 });
 
+function deleteMeeting(meetingId) {
+  if (!confirm("לבטל את הפגישה? הפעולה אינה הפיכה.")) return;
+  ZOHO.CRM.API.deleteRecord({ Entity: "Events", RecordID: meetingId }).then(function() {
+    if (currentAccountId) reloadActivities();
+    loadHomeView();
+  }).catch(function(err) {
+    showError("לא ניתן לבטל את הפגישה — " + JSON.stringify(err));
+  });
+}
+
 document.getElementById("meetingModal").addEventListener("click", function(e) {
   if (e.target === this) closeMeetingModal();
 });
 document.addEventListener("keydown", function(e) {
-  if (e.key === "Escape") { closeRemarkModal(); closeMeetingModal(); closeRecapModal(); }
+  if (e.key === "Escape") { closeRemarkModal(); closeMeetingModal(); }
 });
 
 // ── HOME VIEW ─────────────────────────────────────────────────
@@ -1491,16 +1265,14 @@ function homeMeetingCardHtml(m) {
   var clientId   = m.What_Id && m.What_Id.id   ? m.What_Id.id   : "";
   var joinUrl    = m.$meeting_details && m.$meeting_details.joinmeeting_url;
   var isDone     = m.Status === "Completed";
-  var isPast     = m.Start_DateTime && new Date(m.Start_DateTime) < new Date();
-  var needsRecap = isPast && !isDone;
-  return '<div class="action-card' + (isDone ? ' done-action' : '') + (needsRecap ? ' needs-recap' : '') + '">' +
+  return '<div class="action-card' + (isDone ? ' done-action' : '') + '">' +
     '<div class="action-header">' +
       '<div class="action-title">' + esc(title) + '</div>' +
       (m.Start_DateTime ? '<span class="meeting-date upcoming">' + fmtDateTime(m.Start_DateTime) + '</span>' : '') +
       (isToday(m.Start_DateTime) ? '<span class="badge badge-today">היום</span>' : '') +
     '</div>' +
     '<div class="action-footer">' +
-      (clientId ? '<button class="edit-meeting-btn recap-btn" onclick="openRecapModal(\'' + esc(m.id) + '\',\'' + esc(clientId) + '\')">📋 סיכום</button>' : '') +
+      '<button class="edit-meeting-btn delete-meeting-btn" data-meeting-id="' + esc(m.id) + '">🗑 בטל פגישה</button>' +
       (joinUrl ? '<a class="crm-link" href="' + esc(joinUrl) + '" target="_blank">🟦 הצטרף ל-Teams ↗</a>' : '') +
       (clientId ? '<button class="ht-client" onclick="goToClient(\'' + esc(clientId) + '\')">' + esc(clientName) + '</button>' : '') +
     '</div>' +
@@ -1535,6 +1307,11 @@ function renderHomeMeetingsList() {
   }
   el.innerHTML = meetings.map(homeMeetingCardHtml).join("");
 }
+
+document.getElementById("homeView").addEventListener("click", function(e) {
+  var deleteBtn = e.target.closest(".delete-meeting-btn");
+  if (deleteBtn && deleteBtn.dataset.meetingId) deleteMeeting(deleteBtn.dataset.meetingId);
+});
 
 document.getElementById("homeMeetingTimeFilters").addEventListener("click", function(e) {
   var btn = e.target.closest(".filter-btn");

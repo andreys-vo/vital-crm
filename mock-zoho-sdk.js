@@ -274,6 +274,21 @@
     return delay({ data: results });
   }
 
+  function deleteRecord(args) {
+    var entity = args.Entity;
+    var ids = Array.isArray(args.RecordID) ? args.RecordID : [args.RecordID];
+    var list = db[entity] || [];
+    var results = ids.map(function (id) {
+      var idx = -1;
+      for (var i = 0; i < list.length; i++) { if (list[i].id === id) { idx = i; break; } }
+      if (idx === -1) return { code: "RECORD_NOT_FOUND", details: { id: id }, message: "no record with that id", status: "error" };
+      list.splice(idx, 1);
+      return { code: "SUCCESS", details: { id: id }, message: "record deleted", status: "success" };
+    });
+    saveDb(db);
+    return delay({ data: results });
+  }
+
   // ── META (field schema) ──────────────────────────────────────
   function pick(values) { return values.map(function (v) { return { actual_value: v, display_value: v }; }); }
 
@@ -352,7 +367,8 @@
         getRelatedRecords: getRelatedRecords,
         searchRecords: searchRecords,
         insertRecord: insertRecord,
-        updateRecord: updateRecord
+        updateRecord: updateRecord,
+        deleteRecord: deleteRecord
       },
       META: { getFields: getFields }
     },

@@ -351,30 +351,8 @@
     cursor: pointer; font-family: inherit; transition: all .12s;
   }
   .edit-meeting-btn:hover { background: var(--blue-lt); color: var(--blue); border-color: var(--blue); }
-  .recap-btn { background: var(--amber-lt); color: var(--amber); border-color: transparent; }
-  .recap-btn:hover { background: var(--amber); color: #fff; }
-  .action-card.needs-recap { background: var(--amber-lt); }
-
-  /* RECAP ITEMS */
-  .recap-item-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
-  .recap-item-row input[type="checkbox"] { width: auto; flex-shrink: 0; }
-  .recap-item-text {
-    flex: 1 1 auto; min-width: 0; border: 1px solid var(--gray-100); border-radius: 6px;
-    padding: 6px 10px; font-family: inherit; font-size: 12.5px; color: var(--gray-900);
-  }
-  .recap-item-date {
-    width: 108px; flex-shrink: 0; border: 1px solid var(--gray-100); border-radius: 6px;
-    padding: 6px 8px; font-family: inherit; font-size: 11.5px; color: var(--gray-900);
-    direction: ltr; text-align: right;
-  }
-  .recap-item-text:focus, .recap-item-date:focus { outline: none; border-color: var(--blue); }
-  .recap-item-remove {
-    background: none; border: none; color: var(--gray-300); cursor: pointer;
-    font-size: 14px; flex-shrink: 0; padding: 2px 4px; font-family: inherit;
-  }
-  .recap-item-remove:hover { color: var(--red); }
-  .recap-items-empty { font-size: 12px; color: var(--gray-300); padding: 4px 0 8px; }
-  .recap-add-item-btn { align-self: flex-start; margin-top: 2px; }
+  .delete-meeting-btn { background: var(--red-lt); color: var(--red); border-color: transparent; }
+  .delete-meeting-btn:hover { background: var(--red); color: #fff; }
 
   /* MEETING FORM */
   .form-group { display: flex; flex-direction: column; gap: 4px; }
